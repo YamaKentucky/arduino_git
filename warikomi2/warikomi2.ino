@@ -1,0 +1,131 @@
+#include<SD.h>
+#include <TimeLib.h>
+const int chipSelect = BUILTIN_SDCARD;
+File dataFile;
+
+IntervalTimer myTimer;
+int Z;//accel
+volatile int sw = LOW;
+volatile unsigned long time_prev = 0, time_now;
+unsigned long time_chat = 20;
+volatile int amari = 0;
+
+//const int num = 15500;
+const int num = 1000;
+
+float data [num];
+int m = 0;
+
+void setup() {
+  analogReadResolution(16);//kaizoudo
+  pinMode(9, OUTPUT); //LED
+
+  attachInterrupt(0, keisoku, RISING);
+  setSyncProvider(getTeensy3Time);
+  Serial.begin(115200);
+  if (timeStatus() != timeSet) {
+    Serial.println("Unable to sync with the RTC");
+  } else {
+    Serial.println("RTC has set the system time");
+  }
+  //setTime(16, 56, 50, 24, 7, 2017);
+  Serial.print(F("Initializing SD card..."));
+  pinMode(SS, OUTPUT);
+  if (!SD.begin(chipSelect)) {
+    Serial.println(F("Card failed, or not present"));
+    // 失敗、何もしない
+    while (1);
+  }
+  Serial.println(F("ok."));
+  if (SD.exists("datalog.csv")) {
+    SD.remove("datalog.csv");
+    Serial.println(F("File exist! Remove File."));
+  }
+  //dataFile = SD.open("datalog.csv", FILE_WRITE);
+  digitalWriteFast(9, HIGH);
+}
+
+int ledState = LOW;
+volatile unsigned long blinkCount = 0; // use volatile for shared variables
+
+void keisoku() {
+  time_now = millis(); //現在の割り込み時刻を取得
+  if ( time_now - time_prev > time_chat) {
+    if ( sw == LOW )
+      // myTimer.begin(ReadAnalog, 2000);  // 500 Hz
+      myTimer.begin(ReadAnalog, 10000);  // 100 Hz
+
+    sw = !sw; //前回の割り込みから20[ms]以上経過ならば、スイッチの状態を切り替え
+  }
+  time_prev = time_now; //現在の割り込み時刻を前回の割り込み時刻へコピー
+}
+
+/*void keisoku() {
+  myTimer.begin(ReadAnalog, 4000);  // 250 Hz
+  }*/
+
+void ReadAnalog() {
+  amari = blinkCount % 100;
+  Z = analogRead(A0);
+  data [blinkCount] = Z;
+  blinkCount = blinkCount + 1;  // increase when get
+  //dataFile.print(blinkCount);
+  //dataFile.print(",");
+  //dataFile.println(Z);
+  if (amari == 0 ) {
+    digitalWriteFast(9, HIGH);
+  }
+  else {
+    digitalWriteFast(9, LOW);
+  }
+}
+
+void loop() {
+  Serial.print(blinkCount);
+  Serial.println("Standingby");
+  delay(1000);
+  /*unsigned long blinkCopy;  // holds a copy of the blinkCount
+    noInterrupts();
+    blinkCopy = blinkCount;
+    interrupts();
+    Serial.print("blinkCount = ");
+    Serial.print(blinkCopy);
+    Serial.print(",accel=");
+    Serial.println(Z);
+    delay(1000);*/
+
+  /*if (blinkCount >= 1000) {
+    myTimer.end();
+    Serial.println("Finished");
+    delay(1000);
+    }*/
+
+  //amari = blinkCount % 500;
+  //amari = blinkCount % 100;
+
+  if (blinkCount > 1000 ) {
+      myTimer.end();
+      Serial.println("Finished");
+      /*dataFile = SD.open("datalog.csv", FILE_WRITE);
+      for (int m = 0; m < 10; m++) {
+        //digitalWriteFast(9, HIGH);
+        for (int i = 0; i < 100; i++) {
+          dataFile.print(m);
+          dataFile.print(",");
+          dataFile.print(i + 1 + 100 * m);
+          //dataFile.print(blinkCount);
+          dataFile.print(",");
+          dataFile.println(data[i + 100 * m]);
+          //delay(10);
+        }
+        Serial.println("logging");
+      }
+      Serial.println("owari");
+      dataFile.close();*/
+  }
+}
+
+time_t getTeensy3Time()
+{
+  return Teensy3Clock.get();
+}
