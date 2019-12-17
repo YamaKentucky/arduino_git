@@ -17,6 +17,7 @@ int anchor1 = 6018;
 int anchor2 = 6274;
 int anchor3 = 5762;
 int anchor4 = 6530;
+int incomingByte = 0;
 
 int address1 = 0;
 int distance[4] = {0, 0, 0, 0};
@@ -83,6 +84,12 @@ void loop() {
     distance[2] = 0;
     distance[3] = 0;
   }
+  
+  incomingByte = Serial.read();
+  if(incomingByte == 'A'){
+    digitalWrite(5, HIGH);
+  }
+  
 }
 
 void newRange() {

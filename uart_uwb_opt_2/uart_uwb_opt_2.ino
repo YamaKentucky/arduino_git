@@ -23,6 +23,7 @@ int scalar = 15.8; //no unit
 int range_b = 0;
 int distance = 0;
 String str_out;
+int incomingByte = 0;
 
 void setup() {
   Serial1.begin(115200); //from arduino with UWB
@@ -78,4 +79,9 @@ void loop() {
   Serial3.println(str_out);
   t2 = millis() - t1;
   //Serial.println(t2);
+  
+  incomingByte = Serial3.read();
+  if (incomingByte == 'A'){
+    digitalWrite(5, HIGH)
+  }
 }
