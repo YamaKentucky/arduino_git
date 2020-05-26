@@ -139,4 +139,3 @@ void inactiveDevice(DW1000Device* device) {
   //Serial.println(device->getShortAddress(), HEX);
   Serial.println(device->getShortAddress());
 }
-
