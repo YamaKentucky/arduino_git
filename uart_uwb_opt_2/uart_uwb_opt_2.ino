@@ -29,12 +29,13 @@ void setup() {
   Serial1.begin(115200); //from arduino with UWB
   Serial3.begin(115200); //to raspberry pi
   Serial.begin(115200);  //to debug PC
-
+delay(1);
   // Initialize flow sensor
   if (!flow.begin()) {
     Serial.println("Initialization of the flow sensor failed");
     while (1) { }
   }
+  
 
   // Initialize range sensor
   Wire.begin();
@@ -75,13 +76,17 @@ void loop() {
     //delay(1000);
   }
   str_out = str_out + ',' + recv_data;
-  Serial.println(str_out);
+  Serial.println("distance\tdeltaX\tdeltaY\tdeltaX_sum\tdeltaY_sum\trecv_data");
+  Serial.print(distance);Serial.print("\t\t");Serial.print(deltaX);Serial.print("\t");Serial.print(deltaY);Serial.print("\t");
+  Serial.print(deltaX_sum);Serial.print("\t\t");Serial.print(deltaY_sum);Serial.print("\t\t");
+  Serial.print(recv_data);Serial.print("\n");
+//  Serial.println(str_out);
   Serial3.println(str_out);
   t2 = millis() - t1;
   //Serial.println(t2);
   
   incomingByte = Serial3.read();
   if (incomingByte == 'A'){
-    digitalWrite(5, HIGH)
+    digitalWrite(5, HIGH);
   }
 }
