@@ -68,8 +68,11 @@ void loop() {
     d3_old = distance[3];
   }
 
-
-  if (d0_true > 0 && d1_true > 0 && d2_true > 0 && d3_true > 0) {
+//Serial.print(d0_true);Serial.print("\t");
+//Serial.print(d1_true);Serial.print("\t");
+//Serial.print(d2_true);Serial.print("\t");
+//Serial.println(d3_true);
+if (d0_true > 0 && d1_true > 0 && d2_true > 0 && d3_true > 0) {
     //if (distance[0] != 0 && distance[1] != 0 && distance[2] != 0 && distance[3] != 0) {
     //Serial.print(t); Serial.print(",");
     str_out = String(d0_true) + "," + String(d1_true) + "," + String(d2_true) + "," + String(d3_true);
@@ -132,4 +135,3 @@ void inactiveDevice(DW1000Device* device) {
   //Serial.println(device->getShortAddress(), HEX);
   Serial.println(device->getShortAddress());
 }
-

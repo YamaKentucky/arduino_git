@@ -69,28 +69,26 @@ void loop() {
     elapsed = millis() - t1;
   }
 
-  if (Serial1.available() > 0) {                 
+  if (Serial1.available() > 0) {
     //recv_data = HWSERIAL.readStringUntil('\n');
     recv_data = Serial1.readStringUntil(';');
     //Serial.println(recv_data);
     //delay(1000);
-      //str_out = str_out + ',' + recv_data;
   }
-//  else{
-//    str_out = str_out + ",0,0,0,0";
-//  }
-  str_out = str_out + ',' + recv_data;
-  Serial.println("distance\tdeltaX\tdeltaY\tdeltaX_sum\tdeltaY_sum\trecv_data");
-  Serial.print(distance);Serial.print("\t\t");Serial.print(deltaX);Serial.print("\t");Serial.print(deltaY);Serial.print("\t");
-  Serial.print(deltaX_sum);Serial.print("\t\t");Serial.print(deltaY_sum);Serial.print("\t\t");
-  Serial.print(recv_data);Serial.print("\n");
-  //Serial.println(str_out);
-  Serial3.println(str_out);
-  t2 = millis() - t1;
-  //Serial.println(t2);
-  
-//  incomingByte = Serial3.read();
-//  if (incomingByte == 'A'){
-//    digitalWrite(5, HIGH);
-//  }
+  Serial.println(recv_data);
+  Serial3.println(recv_data);
+//  str_out = str_out + ',' + recv_data;
+//  Serial.println("distance\tdeltaX\tdeltaY\tdeltaX_sum\tdeltaY_sum\trecv_data");
+//  Serial.print(distance);Serial.print("\t\t");Serial.print(deltaX);Serial.print("\t");Serial.print(deltaY);Serial.print("\t");
+//  Serial.print(deltaX_sum);Serial.print("\t\t");Serial.print(deltaY_sum);Serial.print("\t\t");
+//  Serial.print(recv_data);Serial.print("\n");
+////  Serial.println(str_out);
+//  Serial3.println(str_out);
+//  t2 = millis() - t1;
+//  //Serial.println(t2);
+//  
+////  incomingByte = Serial3.read();
+////  if (incomingByte == 'A'){
+////    digitalWrite(5, HIGH);
+////  }
 }

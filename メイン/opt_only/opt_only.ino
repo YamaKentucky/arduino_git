@@ -24,6 +24,7 @@ int range_b = 0;
 int distance = 0;
 String str_out;
 int incomingByte = 0;
+  int i=0;
 
 void setup() {
   Serial1.begin(115200); //from arduino with UWB
@@ -62,31 +63,39 @@ void loop() {
   deltaX_sum = deltaX_sum + deltaX * update_rate * 0.001;
   deltaY_sum = deltaY_sum + deltaY * update_rate * 0.001;
 
-  str_out = String(distance) + "," + String(deltaX) + "," + String(deltaY) + "," + String(deltaX_sum) + "," + String(deltaY_sum);
-  //Serial.println(str_out);
-
-  while (elapsed < update_rate) {
-    elapsed = millis() - t1;
-  }
-
-  if (Serial1.available() > 0) {
-    //recv_data = HWSERIAL.readStringUntil('\n');
-    recv_data = Serial1.readStringUntil(';');
-    //Serial.println(recv_data);
-    //delay(1000);
-  }
-  str_out = str_out + ',' + recv_data;
-  Serial.println("distance\tdeltaX\tdeltaY\tdeltaX_sum\tdeltaY_sum\trecv_data");
-  Serial.print(distance);Serial.print("\t\t");Serial.print(deltaX);Serial.print("\t");Serial.print(deltaY);Serial.print("\t");
-  Serial.print(deltaX_sum);Serial.print("\t\t");Serial.print(deltaY_sum);Serial.print("\t\t");
-  Serial.print(recv_data);Serial.print("\n");
-//  Serial.println(str_out);
+  str_out = String(distance) + "," + String(deltaX) + "," + String(deltaY) + "," + String(deltaX_sum) + "," + String(deltaY_sum) + ",0,0,0,0";
+  Serial.println(str_out);
+  //  Serial.println(str_out);
   Serial3.println(str_out);
-  t2 = millis() - t1;
-  //Serial.println(t2);
-  
-//  incomingByte = Serial3.read();
-//  if (incomingByte == 'A'){
-//    digitalWrite(5, HIGH);
+//
+//  i++;
+//  Serial.println(i);
+//  Serial3.println(i); 
+  //delay(500);
+
+
+//  while (elapsed < update_rate) {
+//    elapsed = millis() - t1;
 //  }
+//
+//  if (Serial1.available() > 0) {
+//    //recv_data = HWSERIAL.readStringUntil('\n');
+//    recv_data = Serial1.readStringUntil(';');
+//    //Serial.println(recv_data);
+//    //delay(1000);
+//  }
+//  str_out = str_out + ',' + recv_data;
+//  Serial.println("distance\tdeltaX\tdeltaY\tdeltaX_sum\tdeltaY_sum\trecv_data");
+//  Serial.print(distance);Serial.print("\t\t");Serial.print(deltaX);Serial.print("\t");Serial.print(deltaY);Serial.print("\t");
+//  Serial.print(deltaX_sum);Serial.print("\t\t");Serial.print(deltaY_sum);Serial.print("\t\t");
+//  Serial.print(recv_data);Serial.print("\n");
+////  Serial.println(str_out);
+//  Serial3.println(str_out);
+//  t2 = millis() - t1;
+//  //Serial.println(t2);
+//  
+////  incomingByte = Serial3.read();
+////  if (incomingByte == 'A'){
+////    digitalWrite(5, HIGH);
+////  }
 }
