@@ -1,6 +1,5 @@
 # arduino-dw1000
 
-![Maintenance](https://img.shields.io/maintenance/no/2019.svg)
 ![Required know-how](https://img.shields.io/badge/Required%20know--how-professional-red.svg)
 ![Additional hardware required](https://img.shields.io/badge/Additional%20hardware-required-orange.svg)
 ![c++11](https://img.shields.io/badge/C%2B%2B-11-brightgreen.svg)
@@ -15,11 +14,7 @@ Project state
 -------------
 
 **Development:**
-There is **no active development** by the owner *thotro*.
-
-This library is currently (2019) **not actively maintained**.
-
-Anyway you can create pull requests if you found a bug or developed a new feature. They maybe help others.
+There is no active development by the owner *thotro*. Anyway this library is still maintained, so make pull requests if you found a bug or developed a new feature!
 
 **TODOs:**
 * Fill wiki: https://github.com/thotro/arduino-dw1000/wiki

@@ -61,7 +61,6 @@ byte       DW1000Class::_preambleLength      = TX_PREAMBLE_LEN_128;
 byte       DW1000Class::_preambleCode        = PREAMBLE_CODE_16MHZ_4;
 byte       DW1000Class::_channel             = CHANNEL_5;
 DW1000Time DW1000Class::_antennaDelay;
-boolean	   DW1000Class::_antennaCalibrated	 = false;
 boolean    DW1000Class::_smartPower          = false;
 
 boolean    DW1000Class::_frameCheck          = true;
@@ -335,6 +334,14 @@ void DW1000Class::enableMode(const byte mode[]) {
 	setDataRate(mode[0]);
 	setPulseFrequency(mode[1]);
 	setPreambleLength(mode[2]);
+	// TODO add channel and code to mode tuples
+	// TODO add channel and code settings with checks (see Table 58)
+	setChannel(CHANNEL_5);
+	if(mode[1] == TX_PULSE_FREQ_16MHZ) {
+		setPreambleCode(PREAMBLE_CODE_16MHZ_4);
+	} else {
+		setPreambleCode(PREAMBLE_CODE_64MHZ_10);
+	}
 }
 
 void DW1000Class::tune() {
@@ -1008,15 +1015,6 @@ void DW1000Class::interruptOnAutomaticAcknowledgeTrigger(boolean val) {
 	setBit(_sysmask, LEN_SYS_MASK, AAT_BIT, val);
 }
 
-void DW1000Class::setAntennaDelay(const uint16_t value) {
-	_antennaDelay.setTimestamp(value);
-	_antennaCalibrated = true;
-}
-
-uint16_t DW1000Class::getAntennaDelay() {
-	return static_cast<uint16_t>(_antennaDelay.getTimestamp());
-}
-
 void DW1000Class::clearInterrupts() {
 	memset(_sysmask, 0, LEN_SYS_MASK);
 }
@@ -1080,14 +1078,11 @@ void DW1000Class::commitConfiguration() {
 	writeSystemEventMaskRegister();
 	// tune according to configuration
 	tune();
-	// TODO check not larger two bytes integer
-	byte antennaDelayBytes[DW1000Time::LENGTH_TIMESTAMP];
-	if( _antennaDelay.getTimestamp() == 0 && _antennaCalibrated == false) {
-		_antennaDelay.setTimestamp(16384);
-		_antennaCalibrated = true;
-	} // Compatibility with old versions.
-	_antennaDelay.getTimestamp(antennaDelayBytes);
-
+	// TODO clean up code + antenna delay/calibration API
+	// TODO setter + check not larger two bytes integer
+	byte antennaDelayBytes[LEN_STAMP];
+	writeValueToBytes(antennaDelayBytes, 16384, LEN_STAMP);
+	_antennaDelay.setTimestamp(antennaDelayBytes);
 	writeBytes(TX_ANTD, NO_SUB, antennaDelayBytes, LEN_TX_ANTD);
 	writeBytes(LDE_IF, LDE_RXANTD_SUB, antennaDelayBytes, LEN_LDE_RXANTD);
 }
@@ -1213,30 +1208,6 @@ void DW1000Class::setChannel(byte channel) {
 	channel &= 0xF;
 	_chanctrl[0] = ((channel | (channel << 4)) & 0xFF);
 	_channel = channel;
-	// Set preambleCode in based of CHANNEL. see chapter 10.5, table 61, dw1000 user manual
-	if(_channel == CHANNEL_1) {
-		if(_pulseFrequency == TX_PULSE_FREQ_16MHZ) {
-			setPreambleCode(PREAMBLE_CODE_16MHZ_2);
-		} else {
-			setPreambleCode(PREAMBLE_CODE_64MHZ_10);
-		}
-	} else if(_channel == CHANNEL_3) {
-		if (_pulseFrequency == TX_PULSE_FREQ_16MHZ) {
-			setPreambleCode(PREAMBLE_CODE_16MHZ_6);
-		} else {
-			setPreambleCode(PREAMBLE_CODE_64MHZ_10);
-		}
-	} else if(_channel == CHANNEL_4 || _channel == CHANNEL_7) {
-		if (_pulseFrequency == TX_PULSE_FREQ_16MHZ) {
-			setPreambleCode(PREAMBLE_CODE_16MHZ_8);
-		} else {
-			setPreambleCode(PREAMBLE_CODE_64MHZ_18);
-		}
-	} else if(_pulseFrequency == TX_PULSE_FREQ_16MHZ) {
-		setPreambleCode(PREAMBLE_CODE_16MHZ_4);
-	} else {
-		setPreambleCode(PREAMBLE_CODE_64MHZ_10);
-	}
 }
 
 void DW1000Class::setPreambleCode(byte preacode) {
@@ -1278,15 +1249,6 @@ void DW1000Class::setDefaults() {
 		// default mode when powering up the chip
 		// still explicitly selected for later tuning
 		enableMode(MODE_LONGDATA_RANGE_LOWPOWER);
-		
-		// TODO add channel and code to mode tuples
-	    // TODO add channel and code settings with checks (see DW1000 user manual 10.5 table 61)/
-	    setChannel(CHANNEL_5);
-		if(getPulseFrequency() == TX_PULSE_FREQ_16MHZ) {
-			setPreambleCode(PREAMBLE_CODE_16MHZ_4);
-		} else {
-			setPreambleCode(PREAMBLE_CODE_64MHZ_10);
-		}
 	}
 }
 

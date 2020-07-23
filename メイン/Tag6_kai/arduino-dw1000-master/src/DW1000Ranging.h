@@ -26,9 +26,6 @@
  * - use enums instead of preprocessor constants
  */
 
-#ifndef _DW1000Ranging_H_INCLUDED
-#define _DW1000Ranging_H_INCLUDED
-
 #include "DW1000.h"
 #include "DW1000Time.h"
 #include "DW1000Device.h" 
@@ -55,15 +52,18 @@
 //Default value
 //in ms
 #define DEFAULT_RESET_PERIOD 200
+
 //in us
-#define DEFAULT_REPLY_DELAY_TIME 7000
+//#define DEFAULT_REPLY_DELAY_TIME 7000
+#define DEFAULT_REPLY_DELAY_TIME 3000
 
 //sketch type (anchor or tag)
 #define TAG 0
 #define ANCHOR 1
 
 //default timer delay
-#define DEFAULT_TIMER_DELAY 80
+//#define DEFAULT_TIMER_DELAY 80
+#define DEFAULT_TIMER_DELAY 20
 
 //debug mode
 #ifndef DEBUG
@@ -211,5 +211,3 @@ private:
 };
 
 extern DW1000RangingClass DW1000Ranging;
-
-#endif
