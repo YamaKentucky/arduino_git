@@ -6,7 +6,7 @@
  *  - give example description
  */
 #include <SPI.h>
-#include "DW1000Ranginghighspeed.h"
+#include "DW1000Ranging.h"
 
 // connection pins
 const uint8_t PIN_RST = 9; // reset pin
@@ -26,8 +26,7 @@ void setup() {
   //DW1000Ranging.useRangeFilter(true);
   
   //we start the module as an anchor
-  DW1000Ranging.startAsAnchor("82:16:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY,false);
-  //DW1000Ranging.startAsAnchor("82:18:5B:D5:A9:9A:E2:9C", DW1000.MODE_SHORTDATA_FAST_ACCURACY,false);
+  DW1000Ranging.startAsAnchor("82:17:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_RANGE_ACCURACY);
 }
 
 void loop() {
@@ -50,3 +49,4 @@ void inactiveDevice(DW1000Device* device) {
   Serial.print("delete inactive device: ");
   Serial.println(device->getShortAddress(), HEX);
 }
+

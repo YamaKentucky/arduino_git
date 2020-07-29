@@ -6,7 +6,7 @@
     - give example description
 */
 #include <SPI.h>
-#include "DW1000Ranginghighspeed.h"
+#include "DW1000Ranging.h"
 
 // connection pins
 const uint8_t PIN_RST = 9; // reset pin
@@ -26,7 +26,8 @@ String str_out;
 int threshold = 2000;
 
 int d0_old = 0, d1_old = 0, d2_old = 0, d3_old = 0, d0_true = 0, d1_true = 0, d2_true = 0, d3_true = 0;
-
+  int i=0;
+  
 void setup() {
   Serial.begin(115200);
   delay(1000);
@@ -42,10 +43,13 @@ void setup() {
   //we start the module as a tag
   //DW1000Ranging.startAsTag("7D:00:22:EA:82:60:3B:9C", DW1000.MODE_SHORTDATA_FAST_ACCURACY);
   DW1000Ranging.startAsTag("7D:00:22:EA:82:60:3B:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY);
+
 }
 
 void loop() {
+    float t1 = millis();
   DW1000Ranging.loop();
+
 
   if (abs(d0_old - distance[0]) < threshold ) {
     d0_true = distance[0];
@@ -76,6 +80,7 @@ if (d0_true > 0 && d1_true > 0 && d2_true > 0 && d3_true > 0) {
     //Serial.print(t); Serial.print(",");
     str_out = String(d0_true) + "," + String(d1_true) + "," + String(d2_true) + "," + String(d3_true);
     Serial.print(str_out + ";");
+    Serial.println(i);
     //    d0_true = 0;
     //    d1_true = 0;
     //    d2_true = 0;
@@ -84,7 +89,13 @@ if (d0_true > 0 && d1_true > 0 && d2_true > 0 && d3_true > 0) {
     distance[1] = 0;
     distance[2] = 0;
     distance[3] = 0;
+    i++;
   }
+if(i==100){
+     float t2 = millis();
+      Serial.print(t2-t1);
+      while(1);
+}
 }
 
 void newRange() {

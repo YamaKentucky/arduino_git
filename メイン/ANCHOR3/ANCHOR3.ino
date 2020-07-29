@@ -16,6 +16,7 @@ const uint8_t PIN_SS = SS; // spi select pin
 void setup() {
   Serial.begin(115200);
   delay(1000);
+  
   //init the configuration
   DW1000Ranging.initCommunication(PIN_RST, PIN_SS, PIN_IRQ); //Reset, CS, IRQ pin
   //define the sketch as anchor. It will be great to dynamically change the type of module
@@ -26,8 +27,10 @@ void setup() {
   //DW1000Ranging.useRangeFilter(true);
   
   //we start the module as an anchor
-  DW1000Ranging.startAsAnchor("82:16:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY,false);
-  //DW1000Ranging.startAsAnchor("82:18:5B:D5:A9:9A:E2:9C", DW1000.MODE_SHORTDATA_FAST_ACCURACY,false);
+//  DW1000Ranging.startAsAnchor("82:17:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY,false);//##Anchor1:6018
+//  DW1000Ranging.startAsAnchor("82:18:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY,false);//##Anchor2:6274
+//  DW1000Ranging.startAsAnchor("82:16:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY,false);//##Anchor3:5762
+  DW1000Ranging.startAsAnchor("82:19:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY,false);//##Anchor4:6530
 }
 
 void loop() {
