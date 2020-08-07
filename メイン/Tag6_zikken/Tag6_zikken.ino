@@ -6,7 +6,7 @@
     - give example description
 */
 #include <SPI.h>
-#include "DW1000Ranging.h"
+#include "DW1000Ranginghighspeed.h"
 
 // connection pins
 const uint8_t PIN_RST = 9; // reset pin
@@ -47,7 +47,7 @@ void setup() {
 }
 
 void loop() {
-    float t1 = millis();
+    int t1 = millis();
   DW1000Ranging.loop();
 
 
@@ -79,8 +79,8 @@ if (d0_true > 0 && d1_true > 0 && d2_true > 0 && d3_true > 0) {
     //if (distance[0] != 0 && distance[1] != 0 && distance[2] != 0 && distance[3] != 0) {
     //Serial.print(t); Serial.print(",");
     str_out = String(d0_true) + "," + String(d1_true) + "," + String(d2_true) + "," + String(d3_true);
-    Serial.print(str_out + ";");
-    Serial.println(i);
+//    Serial.print(str_out + ";");
+//    Serial.println(i);
     //    d0_true = 0;
     //    d1_true = 0;
     //    d2_true = 0;
@@ -92,7 +92,7 @@ if (d0_true > 0 && d1_true > 0 && d2_true > 0 && d3_true > 0) {
     i++;
   }
 if(i==100){
-     float t2 = millis();
+     int t2 = millis();
       Serial.print(t2-t1);
       while(1);
 }

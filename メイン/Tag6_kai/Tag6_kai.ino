@@ -124,13 +124,35 @@ void newRange() {
 
 void newDevice(DW1000Device* device) {
   Serial.print("ranging init; 1 device added ! -> ");
-  Serial.print(" short:");
+  //Serial.print(" short:");
   //Serial.println(device->getShortAddress(), HEX);
-  Serial.println(device->getShortAddress());
+    int a=device->getShortAddress();
+    //Serial.println(a);
+    if(a==anchor1){
+      Serial.println("anchor1");
+    }else if(a==anchor2){
+      Serial.println("anchor2");
+    }else if(a==anchor3){
+      Serial.println("anchor3");
+    }else if(a==anchor4){
+      Serial.println("anchor4");
+    }
+  //Serial.println(device->getShortAddress());
 }
 
 void inactiveDevice(DW1000Device* device) {
   Serial.print("delete inactive device: ");
   //Serial.println(device->getShortAddress(), HEX);
-  Serial.println(device->getShortAddress());
+  int a=device->getShortAddress();
+    //Serial.println(a);
+    if(a==anchor1){
+      Serial.println("anchor1");
+    }else if(a==anchor2){
+      Serial.println("anchor2");
+    }else if(a==anchor3){
+      Serial.println("anchor3");
+    }else if(a==anchor4){
+      Serial.println("anchor4");
+    }
+//  Serial.println(device->getShortAddress());
 }
