@@ -12,6 +12,7 @@
 const uint8_t PIN_RST = 9; // reset pin
 const uint8_t PIN_IRQ = 2; // irq pin
 const uint8_t PIN_SS = SS; // spi select pin
+const int led=4;
 
 int anchor1 = 6018;
 int anchor2 = 6274;
@@ -29,6 +30,7 @@ int d0_old = 0, d1_old = 0, d2_old = 0, d3_old = 0, d0_true = 0, d1_true = 0, d2
 
 void setup() {
   Serial.begin(115200);
+  pinMode(led, OUTPUT);
   delay(1000);
   //init the configuration
   DW1000Ranging.initCommunication(PIN_RST, PIN_SS, PIN_IRQ); //Reset, CS, IRQ pin
@@ -74,6 +76,7 @@ void loop() {
 if (d0_true > 0 && d1_true > 0 && d2_true > 0 && d3_true > 0) {
     //if (distance[0] != 0 && distance[1] != 0 && distance[2] != 0 && distance[3] != 0) {
     //Serial.print(t); Serial.print(",");
+    digitalWrite(led,HIGH);
     str_out = String(d0_true) + "," + String(d1_true) + "," + String(d2_true) + "," + String(d3_true);
     Serial.print(str_out + ";");
     //    d0_true = 0;
@@ -84,7 +87,9 @@ if (d0_true > 0 && d1_true > 0 && d2_true > 0 && d3_true > 0) {
     distance[1] = 0;
     distance[2] = 0;
     distance[3] = 0;
-  }
+  }else{digitalWrite(led,LOW);
+    }
+  //
 }
 
 void newRange() {
