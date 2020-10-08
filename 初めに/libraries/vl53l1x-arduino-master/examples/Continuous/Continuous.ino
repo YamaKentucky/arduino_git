@@ -6,7 +6,7 @@ range readings are in units of mm.
 #include <Wire.h>
 #include <VL53L1X.h>
 
-VL53L1X sensor;
+VL53L1X rangeSensor;
 
 void setup()
 {
@@ -14,8 +14,8 @@ void setup()
   Wire.begin();
   Wire.setClock(400000); // use 400 kHz I2C
 
-  sensor.setTimeout(500);
-  if (!sensor.init())
+  rangeSensor.setTimeout(500);
+  if (!rangeSensor.init())
   {
     Serial.println("Failed to detect and initialize sensor!");
     while (1);
@@ -26,19 +26,19 @@ void setup()
   // the minimum timing budget is 20 ms for short distance mode and 33 ms for
   // medium and long distance modes. See the VL53L1X datasheet for more
   // information on range and timing limits.
-  sensor.setDistanceMode(VL53L1X::Long);
-  sensor.setMeasurementTimingBudget(50000);
+  rangeSensor.setDistanceMode(VL53L1X::Long);
+  rangeSensor.setMeasurementTimingBudget(50000);
 
   // Start continuous readings at a rate of one measurement every 50 ms (the
   // inter-measurement period). This period should be at least as long as the
   // timing budget.
-  sensor.startContinuous(50);
+  rangeSensor.startContinuous(50);
 }
 
 void loop()
 {
-  Serial.print(sensor.read());
-  if (sensor.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
+  Serial.print(rangeSensor.read());
+  if (rangeSensor.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
 
   Serial.println();
 }
