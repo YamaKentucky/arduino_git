@@ -79,6 +79,7 @@ void loop() {
 //  else{
 //    str_out = str_out + ",0,0,0,0";
 //  }
+
   str_out = str_out + ',' + recv_data;
   Serial.println("distance\tdeltaX\tdeltaY\tdeltaX_sum\tdeltaY_sum\trecv_data");
   Serial.print(distance);Serial.print("\t\t");Serial.print(deltaX);Serial.print("\t");Serial.print(deltaY);Serial.print("\t");
@@ -87,10 +88,15 @@ void loop() {
   //Serial.println(str_out);
   Serial3.println(str_out);
   t2 = millis() - t1;
-  //Serial.println(t2);
+
   
-//  incomingByte = Serial3.read();
-//  if (incomingByte == 'A'){
-//    digitalWrite(5, HIGH);
+///*------------LoopTime確認------------*/
+//  //Serial.println(incomingByte);
+//  incomingByte++;
+//  if(incomingByte==200){
+//    t2 = millis();
+//    Serial.println(t2);
+//    while(1);
 //  }
+///*-----------------------------------*/
 }

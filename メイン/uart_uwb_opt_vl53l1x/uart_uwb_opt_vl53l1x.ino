@@ -5,7 +5,8 @@ String recv_data = String(0); // 受信データ
 #include <Wire.h>
 #include <VL53L1X.h>
 VL53L1X rangeSensor;
-#define LONG_RANGE
+//#define MEDIUM_RANGE
+//#define LONG_RANGE
 Bitcraze_PMW3901 flow(10); //Pin select (CS)
 
 float deltaX_sum = 0;
@@ -39,8 +40,14 @@ delay(1);
 
   // Initialize range sensor
   Wire.begin();
+  Wire.setClock(400000); // use 400 kHz I2C
   rangeSensor.init();
   rangeSensor.setTimeout(500);
+  rangeSensor.setDistanceMode(VL53L1X::Medium);
+  rangeSensor.setMeasurementTimingBudget(33000);
+//            rangeSensor.setDistanceMode(VL53L1X::Long);//MODE_LONG
+//            rangeSensor.setMeasurementTimingBudget(50000);//MODE_LONG
+  rangeSensor.startContinuous(10);
 }
 
 void loop() {
@@ -48,8 +55,10 @@ void loop() {
   t2 = 0;
   elapsed = 0;
   flow.readMotionCount(&deltaX, &deltaY);
-  float range = rangeSensor.readRangeSingleMillimeters();
-
+//      float range = rangeSensor.readRangeSingleMillimeters();
+  float range = rangeSensor.read();
+  if (rangeSensor.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
+  
   if (range > 0 && 3000 > range ) {
     distance = range;
   } else {
@@ -65,9 +74,9 @@ void loop() {
   str_out = String(distance) + "," + String(deltaX) + "," + String(deltaY) + "," + String(deltaX_sum) + "," + String(deltaY_sum);
   //Serial.println(str_out);
 
-  while (elapsed < update_rate) {
-    elapsed = millis() - t1;
-  }
+//  while (elapsed < update_rate) {
+//    elapsed = millis() - t1;
+//  }
 
   if (Serial1.available() > 0) {                 
     //recv_data = HWSERIAL.readStringUntil('\n');
@@ -79,6 +88,7 @@ void loop() {
 //  else{
 //    str_out = str_out + ",0,0,0,0";
 //  }
+
   str_out = str_out + ',' + recv_data;
   Serial.println("distance\tdeltaX\tdeltaY\tdeltaX_sum\tdeltaY_sum\trecv_data");
   Serial.print(distance);Serial.print("\t\t");Serial.print(deltaX);Serial.print("\t");Serial.print(deltaY);Serial.print("\t");
@@ -86,11 +96,16 @@ void loop() {
   Serial.print(recv_data);Serial.print("\n");
   //Serial.println(str_out);
   Serial3.println(str_out);
-  t2 = millis() - t1;
-  //Serial.println(t2);
   
-//  incomingByte = Serial3.read();
-//  if (incomingByte == 'A'){
-//    digitalWrite(5, HIGH);
+ 
+
+///*------------LoopTime確認------------*/
+//  //Serial.println(incomingByte);
+//  incomingByte++;
+//  if(incomingByte==200){
+//    t2 = millis();
+//    Serial.println(t2);
+//    while(1);
 //  }
+///*-----------------------------------*/
 }

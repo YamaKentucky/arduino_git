@@ -8,7 +8,7 @@ The range readings are in units of mm. */
 #include <VL53L0X.h>
 
 VL53L0X sensor;
-
+int t;
 void setup()
 {
   Serial.begin(9600);
@@ -30,4 +30,12 @@ void loop()
   if (sensor.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
 
   Serial.println();
+  
+  t++;
+  if(t==200){
+    int time=millis();
+    Serial.print(time);
+    while(1);
+  }
+  
 }
