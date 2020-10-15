@@ -14,18 +14,18 @@ const uint8_t PIN_IRQ = 2; // irq pin
 const uint8_t PIN_SS = SS; // spi select pin
 const int led=4;
 
-int anchor1 = 6018;
-int anchor2 = 6274;
-int anchor3 = 5762;
-int anchor4 = 6530;
+const int anchor1 = 6018;
+const int anchor2 = 6274;
+const int anchor3 = 5762;
+const int anchor4 = 6530;
 
 int address1 = 0;
 int distance[4] = {0, 0, 0, 0};
 int distance_e[4] = {0, 0, 0, 0};
 double range1 = 0;
 String str_out;
-int threshold = 2000;
-
+const int threshold = 2000;
+int device_point=0;
 int d0_old = 0, d1_old = 0, d2_old = 0, d3_old = 0, d0_true = 0, d1_true = 0, d2_true = 0, d3_true = 0;
 
 void setup() {
@@ -48,7 +48,6 @@ void setup() {
 
 void loop() {
   DW1000Ranging.loop();
-
   if (abs(d0_old - distance[0]) < threshold ) {
     d0_true = distance[0];
     d0_old = distance[0];
@@ -73,10 +72,11 @@ void loop() {
 //Serial.print(d1_true);Serial.print("\t");
 //Serial.print(d2_true);Serial.print("\t");
 //Serial.println(d3_true);
+   
 if (d0_true > 0 && d1_true > 0 && d2_true > 0 && d3_true > 0) {
     //if (distance[0] != 0 && distance[1] != 0 && distance[2] != 0 && distance[3] != 0) {
     //Serial.print(t); Serial.print(",");
-    digitalWrite(led,HIGH);
+ digitalWrite(led,HIGH);
     str_out = String(d0_true) + "," + String(d1_true) + "," + String(d2_true) + "," + String(d3_true);
     Serial.print(str_out + ";");
     //    d0_true = 0;
@@ -100,64 +100,58 @@ void newRange() {
   range1 = DW1000Ranging.getDistantDevice()->getRange();
 
   int t = millis();
-
   if (address1 == anchor1) {
     distance[0] = range1 * 100 - 63;
   }
-
-
-
   if (address1 == anchor2) {
     distance[1] = range1 * 100 - 63;
   }
-
-
-
   if (address1 == anchor3) {
     distance[2] = range1 * 100 - 63;
   }
-
-
-
   if (address1 == anchor4) {
     distance[3] = range1 * 100 - 63;
   }
-
-
-
 }
 
 void newDevice(DW1000Device* device) {
   Serial.print("ranging init; 1 device added ! -> ");
-  //Serial.print(" short:");
   //Serial.println(device->getShortAddress(), HEX);
-    int a=device->getShortAddress();
-    //Serial.println(a);
-    if(a==anchor1){
-      Serial.println("anchor1");
-    }else if(a==anchor2){
-      Serial.println("anchor2");
-    }else if(a==anchor3){
-      Serial.println("anchor3");
-    }else if(a==anchor4){
-      Serial.println("anchor4");
+    int device_name=device->getShortAddress();
+    if(device_name==anchor1){
+      Serial.print("anchor1");
+      device_point+=1;
+    }else if(device_name==anchor2){
+      Serial.print("anchor2");
+       device_point+=2;
+    }else if(device_name==anchor3){
+      Serial.print("anchor3");
+      device_point+=3;
+    }else if(device_name==anchor4){
+      Serial.print("anchor4");
+      device_point+=4;
     }
+    Serial.print("---> ");Serial.print(device_point);Serial.println("/10");
   //Serial.println(device->getShortAddress());
 }
 
 void inactiveDevice(DW1000Device* device) {
   Serial.print("delete inactive device: ");
   //Serial.println(device->getShortAddress(), HEX);
-  int a=device->getShortAddress();
-    //Serial.println(a);
-    if(a==anchor1){
-      Serial.println("anchor1");
-    }else if(a==anchor2){
-      Serial.println("anchor2");
-    }else if(a==anchor3){
-      Serial.println("anchor3");
-    }else if(a==anchor4){
-      Serial.println("anchor4");
+  int device_name=device->getShortAddress();
+    if(device_name==anchor1){
+      Serial.print("anchor1");
+      device_point-=1;
+    }else if(device_name==anchor2){
+      Serial.print("anchor2");
+      device_point-=2;
+    }else if(device_name==anchor3){
+      Serial.print("anchor3");
+      device_point-=3;
+    }else if(device_name==anchor4){
+      Serial.print("anchor4");
+      device_point-=4;
     }
+       Serial.print("---> ");Serial.print(device_point);Serial.println("/10");
 //  Serial.println(device->getShortAddress());
 }
