@@ -1,3 +1,13 @@
+/**
+2020/10/15
+UWBドローンのTeensy[OPT+tag]に書き込むプログラム
+uart_uwb_optより改変
+距離センサはvl53l0xを使用
+UWBの接続が途絶えると更新が停止する問題を解決し，接続が途絶えると前の値をプロットし続ける．
+*/
+
+
+
 //#define HWSERIAL Serial1
 String recv_data = String(0); // 受信データ
 
@@ -70,16 +80,10 @@ void loop() {
   }
 
   if (Serial1.available() > 0) {                 
-    //recv_data = HWSERIAL.readStringUntil('\n');
     recv_data = Serial1.readStringUntil(';');
-    //Serial.println(recv_data);
-    //delay(1000);
-      //str_out = str_out + ',' + recv_data;
   }
-//  else{
-//    str_out = str_out + ",0,0,0,0";
-//  }
-
+  
+  if(recv_data.length()<20){
   str_out = str_out + ',' + recv_data;
   Serial.println("distance\tdeltaX\tdeltaY\tdeltaX_sum\tdeltaY_sum\trecv_data");
   Serial.print(distance);Serial.print("\t\t");Serial.print(deltaX);Serial.print("\t");Serial.print(deltaY);Serial.print("\t");
@@ -87,9 +91,9 @@ void loop() {
   Serial.print(recv_data);Serial.print("\n");
   //Serial.println(str_out);
   Serial3.println(str_out);
-  t2 = millis() - t1;
-
+  }
   
+
 ///*------------LoopTime確認------------*/
 //  //Serial.println(incomingByte);
 //  incomingByte++;

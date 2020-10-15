@@ -96,7 +96,7 @@ if(device_value==4||begin_device==1){
   if (d0_true > 0 &&d1_true > 0 && d2_true > 0 && d3_true > 0) {
    digitalWrite(led,HIGH);
       str_out = String(d0_true) + "," + String(d1_true) + "," + String(d2_true) + "," + String(d3_true);
-      Serial.print(str_out + ";");
+      Serial.print(str_out + "\n");
       //Serial.println(str_out + ";");//for debug
       d0_fake = d0_true;
       d1_fake = d1_true;
@@ -145,7 +145,7 @@ void newRange() {
 }
 
 void newDevice(DW1000Device* device) {
-  Serial.print("ranging init; 1 device added ! -> ");
+  Serial.print(" 1 device added ! -> ");
   //Serial.println(device->getShortAddress(), HEX);
     int device_name=device->getShortAddress();
     if(device_name==anchor1){
@@ -164,7 +164,7 @@ void newDevice(DW1000Device* device) {
     device_value=device_point[0]+device_point[1]+device_point[2]+device_point[3];
     Serial.print("---> ");
     Serial.print(device_point[0]);Serial.print(device_point[1]);
-    Serial.print(device_point[2]);Serial.println(device_point[3]);
+    Serial.print(device_point[2]);Serial.print(device_point[3]);Serial.println("");
   //Serial.println(device->getShortAddress());
 }
 
@@ -188,6 +188,6 @@ void inactiveDevice(DW1000Device* device) {
     device_value=device_point[0]+device_point[1]+device_point[2]+device_point[3];
     Serial.print("---> ");
     Serial.print(device_point[0]);Serial.print(device_point[1]);
-    Serial.print(device_point[2]);Serial.println(device_point[3]);
+    Serial.print(device_point[2]);Serial.print(device_point[3]);Serial.println("");
 //  Serial.println(device->getShortAddress());
 }
