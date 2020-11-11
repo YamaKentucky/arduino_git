@@ -46,7 +46,8 @@ void setup() {
 
   //we start the module as a tag
   //DW1000Ranging.startAsTag("7D:00:22:EA:82:60:3B:9C", DW1000.MODE_SHORTDATA_FAST_ACCURACY);
-  DW1000Ranging.startAsTag("7D:00:22:EA:82:60:3B:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY);
+//  DW1000Ranging.startAsTag("7D:00:22:EA:82:60:3B:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY);
+  DW1000Ranging.startAsTag("7D:00:22:EA:82:60:3B:9C", DW1000.MODE_LONGDATA_RANGE_ACCURACY);
 
 }
 
@@ -111,7 +112,7 @@ if(device_value==4||begin_device==1){
       distance[2] = 0;
       distance[3] = 0;
             if(device_value==0){  /*-----*/
-              software_reset();   /*reset*/
+//              software_reset();   /*reset*/
               while(1);           /*-----*/
             }
     }else{    
@@ -119,9 +120,9 @@ if(device_value==4||begin_device==1){
       }
 }
 }
-void software_reset() {
-  asm volatile ("  jmp 0");  
-} 
+//void software_reset() {
+//  asm volatile ("  jmp 0");  
+//} 
 void newRange() {
   //Serial.print("from: "); Serial.print(DW1000Ranging.getDistantDevice()->getShortAddress(), HEX);
   //Serial.print("\t Range: "); Serial.print(DW1000Ranging.getDistantDevice()->getRange()); Serial.print(" m");
@@ -148,6 +149,7 @@ void newDevice(DW1000Device* device) {
   Serial.print(" 1 device added ! -> ");
   //Serial.println(device->getShortAddress(), HEX);
     int device_name=device->getShortAddress();
+      Serial.print(device_name);
     if(device_name==anchor1){
       Serial.print("anchor1");
      device_point[0]=1;
@@ -172,6 +174,7 @@ void inactiveDevice(DW1000Device* device) {
   Serial.print("delete inactive device: ");
   //Serial.println(device->getShortAddress(), HEX);
   int device_name=device->getShortAddress();
+  Serial.print(device_name);
     if(device_name==anchor1){
       Serial.print("anchor1");
       device_point[0]=0;

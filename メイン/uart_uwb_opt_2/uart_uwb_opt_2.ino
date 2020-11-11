@@ -1,6 +1,6 @@
 /**
 2020/10/15
-UWBドローンのTeensy[OPT+tag]に書き込むプログラム
+UWBドローンのTeensy[OPT+tagの情報を受信してpythonに送信]に書き込むプログラム
 uart_uwb_optより改変
 距離センサはvl53l0xを使用
 UWBの接続が途絶えると更新が停止する問題を解決し，接続が途絶えると前の値をプロットし続ける．
@@ -35,7 +35,8 @@ int distance = 0;
 String str_out;
 int incomingByte = 0;
 
-void setup() {
+void setup() {  
+//  delay(5000);
   Serial1.begin(115200); //from arduino with UWB
   Serial3.begin(115200); //to raspberry pi
   Serial.begin(115200);  //to debug PC
@@ -51,9 +52,11 @@ delay(1);
   Wire.begin();
   rangeSensor.init();
   rangeSensor.setTimeout(500);
+
 }
 
 void loop() {
+ 
   t1 = millis();
   t2 = 0;
   elapsed = 0;
@@ -75,21 +78,22 @@ void loop() {
   str_out = String(distance) + "," + String(deltaX) + "," + String(deltaY) + "," + String(deltaX_sum) + "," + String(deltaY_sum);
   //Serial.println(str_out);
 
+
   while (elapsed < update_rate) {
     elapsed = millis() - t1;
   }
 
   if (Serial1.available() > 0) {                 
-    recv_data = Serial1.readStringUntil(';');
+    recv_data = Serial1.readStringUntil('\n');
   }
   
   if(recv_data.length()<20){
   str_out = str_out + ',' + recv_data;
-  Serial.println("distance\tdeltaX\tdeltaY\tdeltaX_sum\tdeltaY_sum\trecv_data");
-  Serial.print(distance);Serial.print("\t\t");Serial.print(deltaX);Serial.print("\t");Serial.print(deltaY);Serial.print("\t");
-  Serial.print(deltaX_sum);Serial.print("\t\t");Serial.print(deltaY_sum);Serial.print("\t\t");
-  Serial.print(recv_data);Serial.print("\n");
-  //Serial.println(str_out);
+//  Serial.println("distance\tdeltaX\tdeltaY\tdeltaX_sum\tdeltaY_sum\trecv_data");
+//  Serial.print(distance);Serial.print("\t\t");Serial.print(deltaX);Serial.print("\t");Serial.print(deltaY);Serial.print("\t");
+//  Serial.print(deltaX_sum);Serial.print("\t\t");Serial.print(deltaY_sum);Serial.print("\t\t");
+//  Serial.print(recv_data);Serial.print("\n");
+  Serial.println(str_out);
   Serial3.println(str_out);
   }
   
