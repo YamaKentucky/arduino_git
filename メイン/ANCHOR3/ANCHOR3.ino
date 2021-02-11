@@ -33,8 +33,8 @@ void setup() {
   */
 //  DW1000Ranging.startAsAnchor("82:17:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY,false);//##Anchor1:6018
 //  DW1000Ranging.startAsAnchor("82:18:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY,false);//##Anchor2:6274
-  DW1000Ranging.startAsAnchor("82:16:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY,false);//##Anchor3:5762
-//  DW1000Ranging.startAsAnchor("82:19:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY,false);//##Anchor4:6530
+//  DW1000Ranging.startAsAnchor("82:16:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY,false);//##Anchor3:5762
+  DW1000Ranging.startAsAnchor("82:19:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY,false);//##Anchor4:6530
   
 }
 
