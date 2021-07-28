@@ -11,164 +11,176 @@ int target=0;
 int server_mode=0;
 int flag=0;
 int finish=0;
+int stepnumber=-1;
+String acc_data="";
 
 IPAddress ip(192, 168, 4, 1);
 IPAddress target_ip(192, 168, 4, 2);
-IPAddress target_ip2(192, 168, 4, 3);
-IPAddress target_ip3(192, 168, 4, 4);
+IPAddress target_ipB(192, 168, 4, 3);
+IPAddress target_ipC(192, 168, 4, 4);
 WiFiServer server(12345);
+
+WiFiClient client ;
+
+String comunicate(){
+  String line="";
+  client.print("1222");client.print("\n");
+  while (client.available() == 0) {
+    delay(1000);
+  }flag=0;
+  while(client.available()) {
+    line = client.readStringUntil('\n');
+  }
+  return line;
+}
+  
+//  if (line.length()>10 && finish==0){//dataを受け取る
+//    acc_data=line;
+//    Serial.print("line");Serial.println(line);
+//    Serial.print("acc_data");Serial.println(acc_data);
+//    Serial.println("finish to comunicate @target1");
+//    Serial.print("length=");Serial.println(line.length());
+//    finish=1;
+//    delay(1000);
+// }else if(line.length()>2 && finish==1){//step番号を受け取る
+//    stepnumber=line.toInt();
+//    Serial.println(line);
+//    Serial.println(stepnumber);    
+//    Serial.println("acc=");Serial.println(acc_data);Serial.println("\t\tfinish");
+//    finish=0;
+//    server_mode=2;
+// }return acc_data;
+//}
+
 
 void setup() {
   Serial.begin(115200);
-  // ESP32をアクセスポイントとして動作させる
-  WiFi.softAP(ssid, pass);
+  WiFi.softAP(ssid, pass);// ESP32をアクセスポイントとして動作させる
   WiFi.softAPConfig(ip, WiFi.gatewayIP(), WiFi.subnetMask());
   server.begin();
   Serial.println("Server started");
   // LEDの初期化
-  pinMode(led_pin, OUTPUT);
-  digitalWrite(led_pin, LOW);
-  pinMode(led_pin2, OUTPUT);
-  digitalWrite(led_pin2, LOW);
-  pinMode(led_pin3, OUTPUT);
-  digitalWrite(led_pin3, LOW);
+  pinMode(led_pin, OUTPUT);digitalWrite(led_pin, LOW);
+  pinMode(led_pin2, OUTPUT);digitalWrite(led_pin2, LOW);
+  pinMode(led_pin3, OUTPUT);digitalWrite(led_pin3, LOW);
+  
  
   IPAddress myIP = WiFi.softAPIP();
-  Serial.println("APStarted. myIP Address:");
-  Serial.println(myIP);
-  Serial.print("server Mac Address: ");
-  Serial.println(WiFi.macAddress());
-  Serial.print("Subnet Mask: ");
-  Serial.println(WiFi.subnetMask());
-  Serial.print("Gateway IP: ");
-  Serial.println(WiFi.gatewayIP());
-   delay(500);
+  Serial.print("APStarted. myIP Address:\t");Serial.println(myIP);
+  Serial.print("server Mac Address:\t");Serial.println(WiFi.macAddress());
+  Serial.print("Subnet Mask:\t");Serial.println(WiFi.subnetMask());
+  Serial.print("Gateway IP: \t");Serial.println(WiFi.gatewayIP());
+  delay(500);
 }
-
-//void loop() {
-//  WiFiClient client = server.available();
-//
-////  if(client.remoteIP()==target_ip){
-// while(client >0){
-//    Serial.println(client.remoteIP());
-//    while(client.connected()){
-//      client.println("println");
-//      delay(1000);
-//      client.println("\n");
-//    }
-//  }
-//  delay(2000);
-//  client.stop();
-//  Serial.println("client disconnected");
-//  }
-
 
 void loop() {
   String line = "";
-  // クライアントからの通信を待つ
-//  WiFiClient client = server.available();
-if (server_mode==0){
-  while (setup_esp()!=true){
-    Serial.println("waiting");
-  }
-  Serial.println("all modules available");
-  server_mode=1;
-  }else if (server_mode==1){
-    WiFiClient client = server.available();
+  String dataA="0";
+  String dataB="0";
+  String dataC="0";
+  while(1){
+  if (server_mode==0){//////////////////////////////////////////////////////////////////
+    while (setup_esp()!=true){
+      Serial.println("waiting");
+    }Serial.println("all modules available");
+    server_mode=1;
+ }else if (server_mode==1){//////////////////////////////////////////////////////////
+    client = server.available();
+    Serial.println(server_mode);
     if (client.remoteIP()==target_ip){
-      client.print("A");
-       client.print("\n");
-    while (client.available() == 0) {
-       
-       delay(1000);
-       }
-    }flag=0;
-    while(client.available()) {
-      line = client.readStringUntil('\n');
-//      Serial.println(line);
+      line=comunicate();
+        if (line.length()>10 && finish==0){//dataを受け取る
+          Serial.print("line");Serial.println(line);
+          dataA=line;
+          Serial.print("acc_data");Serial.println(acc_data);
+          Serial.println("finish to comunicate @targetA");
+//          Serial.print("length=");Serial.println(line.length());
+          finish=1;
+          delay(500);
+       }else if(line.length()>2 && finish==1){//step番号を受け取る
+          stepnumber=line.toInt();
+          Serial.println(line);
+          Serial.println(stepnumber);    
+          Serial.println("acc=");Serial.println(acc_data);Serial.println("\t\tfinish");
+          finish=0;
+          server_mode=2;
+      }else{
+        server_mode=1;//やり直し
+      }
     }
-    if (line.length()>10 && finish==0){
-      Serial.println(line);
-      Serial.println("finish to comunicate @target1");
-      Serial.println(line.length());
-      finish=1;
-       delay(500);
-    }else if(line=="kakunin"){
-      Serial.println("finish");
-      finish=0;
-//      delay(10000);
-      server_mode=2;
+ }else if(server_mode==2){//////////////////////////////////////////////////////////////////////////
+    client = server.available();
+    if (client.remoteIP()==target_ipB){
+      line=comunicate();
+        if (line.length()>10 && finish==0){//dataを受け取る
+          Serial.print("line");Serial.println(line);
+          dataB=line;
+          Serial.print("acc_data");Serial.println(acc_data);
+          Serial.println("finish to comunicate @targetB");
+//          Serial.print("length=");Serial.println(line.length());
+          finish=1;
+          delay(500);
+       }else if(line.length()>2 && finish==1){//step番号を受け取る
+          stepnumber=line.toInt();
+          Serial.println(line);
+          Serial.println(stepnumber);    
+          Serial.println("acc=");Serial.println(acc_data);Serial.println("\t\tfinish");
+          finish=0;
+          server_mode=3;
+      }else{
+        server_mode=2;//やり直し
+      }
     }
-  }else{
-     while (1);
+  }else if(server_mode==3){//////////////////////////////////////////////////////////////////////////
+    client = server.available();
+    if (client.remoteIP()==target_ipC){
+      line=comunicate();
+        if (line.length()>10 && finish==0){//dataを受け取る
+          Serial.print("line");Serial.println(line);
+          dataC=line;
+          Serial.print("acc_data");Serial.println(acc_data);
+          Serial.println("finish to comunicate @targetC");
+//          Serial.print("length=");Serial.println(line.length());
+          finish=1;
+          delay(500);
+       }else if(line.length()>2 && finish==1){//step番号を受け取る
+          stepnumber=line.toInt();
+          Serial.println(line);
+          Serial.println(stepnumber);    
+          Serial.println("acc=");Serial.println(acc_data);Serial.println("\t\tfinish");
+          finish=0;
+          server_mode=4;
+      }else{
+        server_mode=3;//やり直し
+      }
+    }
+  }else{//////////////////////////////////////////////////////////////////////////////
+    Serial.println("please");Serial.println(dataA);
+    Serial.println(dataB);
+    Serial.println(dataC);
+    while(1);
   }
 }
- 
-
-  
-//  if (client) {
-//    // 通信を始める
-//    Serial.println("New Client.");
-//    String line = "";
-//    // データがある間受信する
-//    while (client.connected()) {
-//      if (client.available()) { 
-//        char c = client.read();
-//        // LFを受信したら受信を終える
-//        if (c == '\n')
-//          break;
-//        line.concat(c);
-//        Serial.print(c);
-//      }
-//    }
-//    // 受信した文字列をシリアルモニタに出力する
-//    Serial.print("\nReceived: ");
-//    Serial.println(line);
-//    // 受信した文字列が「On」なら
-//    // LEDを点灯して、クライアントに「On OK」と送信する
-//    if (line.equals("On")) {
-//      digitalWrite(led_pin, HIGH);
-//      client.print("On OK");
-//    }else if (line.equals("Off")) {
-//      digitalWrite(led_pin, LOW);
-//      client.print("Off OK");
-//    }else if (line.equals("A")) {
-//      digitalWrite(led_pin1, HIGH);
-//      client.print("On OK");
-//    }else if (line.equals("B")) {
-//      digitalWrite(led_pin1, LOW);
-//      client.print("On OK");
-//    }else{
-//      Serial.println("?????");
-//    }
-//    client.print('\n');
-//    delay(10);
-//    // 通信を終える
-//    client.stop();
-//    Serial.println("Client Disconnected.");
-//  }
-//}
+}
 
 
 int setup_esp(){
   WiFiClient client = server.available();
-  Serial.print(client.remoteIP());
-  if(client.remoteIP()==target_ip){
-    int client1=client;
+  if(client.remoteIP()==target_ip && target==0){
     target=1;
+    
     digitalWrite(led_pin, HIGH);
     client.print("OK");
     Serial.println("target");
+    
   }
-  if(client.remoteIP()==target_ip2  && target==1){
-    int client2=client;
+  if(client.remoteIP()==target_ipB  && target==1){
     target=2;
     digitalWrite(led_pin2, HIGH);
     client.print("OK");
     Serial.println("target2");
   }
-  if(client.remoteIP()==target_ip3  && target==2){
-    int client3=client;
+  if(client.remoteIP()==target_ipC  && target==2){
     target=3;
     digitalWrite(led_pin3, HIGH);
     client.print("OK");
@@ -202,3 +214,21 @@ int setup_esp(){
 //    }
 //    return line
 //}
+
+
+//void loop() {
+//  WiFiClient client = server.available();
+//
+////  if(client.remoteIP()==target_ip){
+// while(client >0){
+//    Serial.println(client.remoteIP());
+//    while(client.connected()){
+//      client.println("println");
+//      delay(1000);
+//      client.println("\n");
+//    }
+//  }
+//  delay(2000);
+//  client.stop();
+//  Serial.println("client disconnected");
+//  }
