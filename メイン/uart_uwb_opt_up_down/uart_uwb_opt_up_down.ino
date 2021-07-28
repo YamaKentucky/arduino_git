@@ -1,81 +1,10 @@
-///*
-//This example shows how to take simple range measurements with the VL53L1X. The
-//range readings are in units of mm.
-//*/
-//
-//#include <Wire.h>
-//extern TwoWire Wire1;
-//#include <VL53L1X.h>
-//
-//VL53L1X sensor;
-//VL53L1X sensor8;
-//
-//#define RSHUT 5
-//#define SHUT8 6
-//
-//
-//void setup()
-//{
-//  pinMode(RSHUT, OUTPUT);
-//  pinMode(SHUT8, OUTPUT);
-//  digitalWrite(RSHUT, LOW);
-//  digitalWrite(SHUT8, LOW);
-//  
-//  Serial.begin(115200);
-//
-//  delay(500);
-//  Wire.begin();
-//  Wire.beginTransmission(0x29);
-//  Wire.setClock(400000); // use 400 kHz I2C
-//  //#########################################
-//  digitalWrite(RSHUT,HIGH);
-//  delay(150);
-//  sensor.init();
-//  Serial.println("01");
-//  delay(100);
-//  sensor.setAddress(0x33);
-//  
-//  //#########################################
-//  digitalWrite(SHUT8,HIGH);
-//  delay(150);
-//  sensor8.init();
-//  Serial.println("01");
-//  delay(100);
-//  sensor8.setAddress(0x35);
-//  
-//  sensor.setDistanceMode(VL53L1X::Medium);
-//  sensor.setMeasurementTimingBudget(33000);
-//  sensor.startContinuous(10);
-//  sensor.setTimeout(500);
-//
-//  sensor8.setDistanceMode(VL53L1X::Medium);
-//  sensor8.setMeasurementTimingBudget(33000);
-//  sensor8.startContinuous(10);
-//  sensor8.setTimeout(500);
-//
-//
-//}
-//
-//void loop()
-//{
-//  Serial.print(sensor.read());
-//  if (sensor.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
-//
-//  Serial.print("\t");
-//  Serial.print(sensor8.read());
-//  if (sensor.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
-//
-//  Serial.println();
-//}
 
 
 /**
-2021/02/23
+2021/04/06
 UWBドローンのTeensy[OPT+tag]に書き込むプログラム
 uart_uwb_optより改変
-l0xとl1xの両センサを使用可能
-距離センサはvl53l1xを使用
-vl53l0x,vl53l1xを選択可能
+2つのl1x距離センサ，OPTセンサを使用するためのプログラム
 UWBの接続が途絶えると更新が停止する問題を解決し，接続が途絶えると前の値をプロットし続ける．
 */
 
@@ -89,9 +18,11 @@ String recv_data = String(0); // 受信データ
 VL53L1X sensor_up;
 VL53L1X sensor_down;
 
-#define SHUT_UP 5
-#define SHUT_DOWN 6
+//#define SHUT_UP 5
+//#define SHUT_DOWN 6
 
+#define SHUT_UP 6
+#define SHUT_DOWN 5 //切削基盤の時はこちら
 
 //#define L0X//cs10
 ////#define L1X//cs9
@@ -133,17 +64,29 @@ int distance_dwn = 0;
 String str_out;
 int incomingByte = 0;
 
+const int debugmode=0;//debugmode==>opt&height sensor  1:don't use 0:use
+
 void setup() {
   Serial1.begin(115200); //from arduino with UWB
   Serial3.begin(115200); //to raspberry pi
   Serial.begin(115200);  //to debug PC
+  pinMode(13, OUTPUT);
+  if (debugmode==1){
+    Serial.print("debug__mode");
+    digitalWrite(13, HIGH);
+    return;
+  }
+    
+  setup_sensor("flow"); // Initialize flow sensor
+
   pinMode(SHUT_UP, OUTPUT);
   pinMode(SHUT_DOWN, OUTPUT);
   digitalWrite(SHUT_UP, LOW);
   digitalWrite(SHUT_DOWN, LOW); 
-delay(1);
+  delay(100);
   setup_sensor("range"); // Initialize range sensor
-  setup_sensor("flow"); // Initialize flow sensor
+  delay(100);
+
 }
 
 void setup_sensor(int mode){
@@ -161,7 +104,6 @@ void setup_sensor(int mode){
       sensor_up.setMeasurementTimingBudget(33000);
       sensor_up.startContinuous(10);
       sensor_up.setTimeout(500); 
-    
     /*##############################sensor@down config##############################*/
       digitalWrite(SHUT_DOWN,HIGH);
       delay(150);
@@ -172,15 +114,19 @@ void setup_sensor(int mode){
       sensor_down.setMeasurementTimingBudget(33000);
       sensor_down.startContinuous(10);
       sensor_down.setTimeout(500);
+
   }else if(mode="flow"){
-    if (!flow_up.begin()) {
-      Serial.println("Initialization of the flow sensor_upside failed");
-    while (1) { }
-    }
     if (!flow_down.begin()) {
-     Serial.println("Initialization of the flow sensor_downside failed");
-    while (1) { }
+        Serial.println("Initialization of the flow sensor_downside failed");
+//        while (1) {
+        SCB_AIRCR = 0x05FA0004;//}//reset for teensyLC}
     }
+    if (!flow_up.begin()) {
+        Serial.println("Initialization of the flow sensor_upside failed");
+        SCB_AIRCR = 0x05FA0004;
+//        while (1) {SCB_AIRCR = 0x05FA0004;}//reset for teensyLC }
+    }
+
   }
 }
 
@@ -188,19 +134,25 @@ void setup_sensor(int mode){
 
 
 void loop() {
-  t1 = millis();
-  t2 = 0;
-  elapsed = 0;
+  if (debugmode==1){
+//    str_out ="76,0,0,0.00,0.00,2001,0,0,0.0,0.0";
+    str_out =String(76) + "," +String(0) + "," + String(0) + "," + String(0.00) + "," + String(0.00);
+    str_out =str_out + "," + String(2001) + "," + String(0) + "," + String(0) + "," + String(0.00) + "," + String(0.00);
+
+  }else{
+    t1 = millis();
+    t2 = 0;
+    elapsed = 0;
 /*//////////////////////////////////////////////////////////*/  
-  flow_up.readMotionCount(&deltaX_up, &deltaY_up);
-    sum_dxdy("up");
-  flow_down.readMotionCount(&deltaX_down, &deltaY_down);
-    sum_dxdy("down");
+    flow_up.readMotionCount(&deltaX_up, &deltaY_up);
+      sum_dxdy("up");
+    flow_down.readMotionCount(&deltaX_down, &deltaY_down);
+      sum_dxdy("down");
 /*//////////////////////////////////////////////////////////*/
 
-  str_out =String(distance_dwn) + "," +String(deltaX_down) + "," + String(deltaY_down) + "," + String(dX_sum_dwn) + "," + String(dY_sum_dwn);
-  str_out =str_out + "," + String(distance_up) + "," + String(deltaX_up) + "," + String(deltaY_up) + "," + String(dX_sum_up) + "," + String(dY_sum_up);
-   
+    str_out =String(distance_dwn) + "," +String(deltaX_down) + "," + String(deltaY_down) + "," + String(dX_sum_dwn) + "," + String(dY_sum_dwn);
+    str_out =str_out + "," + String(distance_up) + "," + String(deltaX_up) + "," + String(deltaY_up) + "," + String(dX_sum_up) + "," + String(dY_sum_up);
+  }
 //  Serial.println(str_out);
 //
 //////  while (elapsed < update_rate) {
@@ -214,15 +166,22 @@ void loop() {
     recv_data = Serial1.readStringUntil('\n');
   }
 
-  if(recv_data.length()<20){
+  if(recv_data.length()<22){
    str_out = str_out + ',' + recv_data;
 //    Serial.println("distance\tdeltaX\tdeltaY\tdeltaX_sum\tdeltaY_sum\trecv_data");
-//    Serial.print(distance);Serial.print("\t\t");Serial.print(deltaX_up);Serial.print("\t");Serial.print(deltaY_up);Serial.print("\t");
+//    Serial.print(distance_dwn);Serial.print("\t\t");Serial.print(deltaX_down);Serial.print("\t");Serial.print(deltaY_down);Serial.println("\t");
 //    Serial.print(deltaX_sum);Serial.print("\t\t");Serial.print(deltaY_sum);Serial.print("\t\t");
 //    Serial.print(recv_data);Serial.print("\n");
-    Serial.println(str_out);
-    Serial3.println(str_out);
+//    Serial.println(str_out);
+    if (debugmode==1){
+      Serial3.println(str_out);
+      delay(10);
+    }else{
+      Serial3.println(str_out);
+    }
   }
+//      Serial.println(str_out);
+
 //
 //    Serial.println("dXup_sum\tdYup_sum\tdXdwn_sum\tdYdwn_sum");
 //    Serial.print(dX_sum_up);  Serial.print("\t\t"); Serial.print(dY_sum_up);  Serial.print("\t\t"); 

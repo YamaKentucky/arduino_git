@@ -1,0 +1,23 @@
+<html lang=\'ja\'>
+<html><head><title>EPM</title>
+<meta charset=\'utf-8\'>
+
+<head><pre><meta http-equiv='refresh' content='2,./M300_condition.html'></pre></head>
+<html><body><h1>[スタンバイモードA]</h1><br></body>
+<h1>EPMを自動吸着判定のため励磁しました</h1><br>
+<h1>吸着対象物が近づくと自動で再励磁し，最大吸着力を発揮します</h1><br>
+<p>シリアルなしです。</p>
+<br><br><br><br><br><br><br><br><br>
+<body>
+<div style='text-align: right'><button style='background:red;' ><font size='40px'>
+<a id = 'btn' onclick='MoveCheck();'>緊急離脱</a></font></button></div>
+    <script>
+        function MoveCheck() {
+            if( confirm('本当に実行しますか？') ) {
+            window.location.href = './standby.html';
+            }else {
+            alert('．．．');
+            }
+        }       
+    </script>
+</body>

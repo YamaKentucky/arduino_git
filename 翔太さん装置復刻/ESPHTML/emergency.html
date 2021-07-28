@@ -1,0 +1,22 @@
+<html lang=\'ja\'>
+<html><head><title>EPM</title>
+<meta charset=\'utf-8\'>
+<html>
+<body><h1>強制離脱しました</h1><br>
+システムを再起動するまでEPMは磁化されません</body>
+<br><br><br><br><br><br><br><br><br>
+<body>
+<div style='text-align: right'><button style='background:red;' ><font-size='40px'>
+<a id = 'btn' onclick='MoveCheck();'>緊急離脱</a></font-size></button></div>
+    <script>
+        function MoveCheck() {
+            if( confirm('本当に実行しますか？') ) {
+            window.location.href = './emergency.html';
+            }else {
+            alert('．．．');
+            }
+        }       
+    </script>
+</body>
+</html>
+

@@ -51,6 +51,7 @@ void setup() {
   Serial3.begin(115200); //to raspberry pi
   Serial.begin(115200);  //to debug PC
 delay(1);
+Serial.print("Initialize");
   // Initialize flow sensor
   if (!flow.begin()) {
     Serial.println("Initialization of the flow sensor failed");
@@ -86,6 +87,7 @@ int read_sensor(){
 
 
 void loop() {
+  Serial.print(" aa"); 
   t1 = millis();
   t2 = 0;
   elapsed = 0;

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name='viewport' content='width=1000'>
+    <title>飛行ロボコンタイマーPC</title>
+</head>
+
+<body>
+
+    <!-- ////////////////////////////////////////////Time form/////////////////////////////////////////////////// -->
+    <form name='ktimer' onsubmit='return false;'>
+        <font size='7'><B id='counter'>5</B></font>
+        <font size='5'>sec</font>
+        <body onload='count_start();'></body>        
+        <head>
+            <pre><meta http-equiv='refresh' content='5,/standby'></pre>
+        </head>
+
+    </form>
+    <!-- blue line -->
+    <hr size='10' color='#0000ff' noshade>
+
+
+
+    <script type='text/javascript'>//初期設定
+        ////////////////////////////////////////////Time///////////////////////////////////////////////////
+        function timer_reset() { //タイマーの初期化
+            timerID = 0;
+            commentID = 0;
+            document.ktimer.counter.value = 5;
+        }
+        function set_timer(num) {//規定時間の設定
+            document.ktimer.counter.value = num;
+            count_start();
+        }
+        function count_start() {//カウント開始
+            count = def_count;   // カウンタのリセット
+            timerID = setInterval('countdown()', 1000);   // タイマーをセット(1000ms間隔)
+        }
+        function count_format(num) {//カウント表示の書式設定
+            var tm, ts;
+            ts = num;
+            return ts;
+        }
+        function countdown() {//カウント表示
+            count--;
+            document.getElementById('counter').innerHTML = count_format(count);   // 表示更新 
+        }
+    </script>
+
+
+ 

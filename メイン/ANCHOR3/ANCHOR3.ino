@@ -1,9 +1,15 @@
 /**
- * 
- * @todo
- *  - move strings to flash (less RAM consumption)
- *  - fix deprecated convertation form string to char* startAsAnchor
- *  - give example description
+1:左手前
+2:左奥
+3:右奥
+4:右手前
+  2 ------- 3
+(3,2.5)  (3,-2.5)
+  |   5m    |
+  |6m       |    
+  |         | 
+  1 ------- 4
+(-3,2.5) (-3,-2.5)
  */
 #include <SPI.h>
 #include "DW1000Ranginghighspeed.h"
@@ -15,6 +21,10 @@ const uint8_t PIN_SS = SS; // spi select pin
 
 void setup() {
   Serial.begin(115200);
+  pinMode(27,OUTPUT);
+  pinMode(28,OUTPUT);
+//  pinMode(28,OUTPUT);
+//  digitalWrite(28,HIGH);
   delay(1000);
   
   //init the configuration
@@ -31,10 +41,10 @@ void setup() {
    * MODE_SHORTDATA_FAST_ACCURACY
    * MODE_LONGDATA_RANGE_ACCURACY
   */
-//  DW1000Ranging.startAsAnchor("82:17:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY,false);//##Anchor1:6018
+  DW1000Ranging.startAsAnchor("82:17:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY,false);//##Anchor1:6018
 //  DW1000Ranging.startAsAnchor("82:18:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY,false);//##Anchor2:6274
 //  DW1000Ranging.startAsAnchor("82:16:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY,false);//##Anchor3:5762
-  DW1000Ranging.startAsAnchor("82:19:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY,false);//##Anchor4:6530
+//  DW1000Ranging.startAsAnchor("82:19:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_FAST_ACCURACY,false);//##Anchor4:6530
   
 }
 
@@ -49,12 +59,19 @@ void newRange() {
 }
 
 void newBlink(DW1000Device* device) {
+  digitalWrite(27,HIGH);
+  digitalWrite(28,HIGH);
+  
   Serial.print("blink; 1 device added ! -> ");
   Serial.print(" short:");
   Serial.println(device->getShortAddress(), HEX);
+ 
 }
 
 void inactiveDevice(DW1000Device* device) {
+  digitalWrite(27,LOW);
+  digitalWrite(28,LOW);
+  
   Serial.print("delete inactive device: ");
   Serial.println(device->getShortAddress(), HEX);
 }

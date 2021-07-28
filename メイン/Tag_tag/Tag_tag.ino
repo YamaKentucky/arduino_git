@@ -218,8 +218,10 @@ UWBの接続が途絶えると更新が停止する問題を解決し，接続�
 #include "DW1000Ranginghighspeed.h"
 
 // connection pins
-const uint8_t PIN_RST = 9; // reset pin
-const uint8_t PIN_IRQ = 2; // irq pin
+//const uint8_t PIN_RST = 9; // reset pin
+//const uint8_t PIN_IRQ = 2; // irq pin
+const uint8_t PIN_RST = 2; // reset pin
+const uint8_t PIN_IRQ = 3; // irq pin 切削基盤の時はこちら
 const uint8_t PIN_SS = SS; // spi select pin
 const int led=4;
 
@@ -239,6 +241,7 @@ int begin_device=-1;
 int d0_old = 0, d1_old = 0, d2_old = 0, d3_old = 0, d0_true = 0, d1_true = 0, d2_true = 0, d3_true = 0;
 int d0_fake=0,d1_fake=0,d2_fake=0,d3_fake=0;
 int i=0;
+int flag=1;
 void setup() {
   Serial.begin(115200);
   pinMode(led, OUTPUT);
@@ -304,7 +307,7 @@ if(device_value==4||begin_device==1){
   begin_device=1;
   if (d0_true > 0 &&d1_true > 0 && d2_true > 0 && d3_true > 0) {
    digitalWrite(led,HIGH);
-      str_out = String(d0_true) + "," + String(d1_true) + "," + String(d2_true) + "," + String(d3_true);
+      str_out = String(d0_true) + "," + String(d1_true) + "," + String(d2_true) + "," + String(d3_true)+","+String(flag);
       Serial.print(str_out + "\n");
       //Serial.println(str_out + ";");//for debug
       d0_fake = d0_true;
@@ -354,6 +357,7 @@ void newRange() {
 }
 
 void newDevice(DW1000Device* device) {
+  flag=0;
   Serial.print(" 1 device added ! -> ");
   //Serial.println(device->getShortAddress(), HEX);
     int device_name=device->getShortAddress();
@@ -379,6 +383,7 @@ void newDevice(DW1000Device* device) {
 }
 
 void inactiveDevice(DW1000Device* device) {
+  flag=1;
   Serial.print("delete inactive device: ");
   //Serial.println(device->getShortAddress(), HEX);
   int device_name=device->getShortAddress();
