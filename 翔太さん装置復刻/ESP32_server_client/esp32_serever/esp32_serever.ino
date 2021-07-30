@@ -14,6 +14,8 @@ int finish=0;
 int stepnumber=-1;
 int sending=0;
 String acc_data="";
+int multi=0;
+
 
 IPAddress ip(192, 168, 4, 1);
 IPAddress target_ip(192, 168, 4, 2);
@@ -55,6 +57,30 @@ int setup_esp(){
   return false;
 }
 
+void task0(void* arg)
+ {
+  static int count = 0;
+     while (1){      
+      if (multi==1){
+           Serial.println(count++);
+           if (count>30){
+            while(1){
+              count++;
+              if(count%2==0){
+              digitalWrite(led_pin, LOW);digitalWrite(led_pin2, LOW);digitalWrite(led_pin3, LOW);
+              }else{
+              digitalWrite(led_pin, HIGH);digitalWrite(led_pin2, HIGH);digitalWrite(led_pin3, HIGH);
+              }
+              delay(1000);
+            }
+           }
+     }else{
+      count=0;
+     }
+       delay(1000);
+     }
+ }
+
 void setup() {
   Serial.begin(115200);
   WiFi.softAP(ssid, pass);// ESP32をアクセスポイントとして動作させる
@@ -68,10 +94,11 @@ void setup() {
   
  
   IPAddress myIP = WiFi.softAPIP();
-  Serial.print("APStarted. myIP Address:\t");Serial.println(myIP);
-  Serial.print("server Mac Address:\t");Serial.println(WiFi.macAddress());
-  Serial.print("Subnet Mask:\t");Serial.println(WiFi.subnetMask());
-  Serial.print("Gateway IP: \t");Serial.println(WiFi.gatewayIP());
+  Serial.printf("APStarted. myIP Address: %d\n",myIP);//Serial.println(myIP);
+  Serial.printf("server Mac Address: %d\n",WiFi.macAddress());//Serial.println(WiFi.macAddress());
+  Serial.printf("Subnet Mask: %d\n",WiFi.subnetMask());//Serial.println(WiFi.subnetMask());
+  Serial.printf("Gateway IP: %d\n",WiFi.gatewayIP());//Serial.println(WiFi.gatewayIP());
+  xTaskCreatePinnedToCore(task0, "Task0", 4096, NULL, 1, NULL, 1);
   delay(500);
 }
 
@@ -87,16 +114,16 @@ void loop() {
     }Serial.println("all modules available");
     server_mode=1;
  }else if (server_mode==1){//////////////////////////////////////////////////////////
-  Serial.print("aaaaaaaaa");
-      for (int i=0;i<3;i++){     
+  
+  multi=1;
+  Serial.printf("aaa    %d\n",multi);
+      for (int i=0;i<3;i++){  
         if(i==0){
           rcvCommand(target_ip,0);//hoge
         }else if (i==1){ 
           dataA=rcvCommand(target_ip,-1);
-        }else if(i==2){
-          A=rcvCommand(target_ip,-1);//最初は0,stepnumber=-1
         }else{
-          rcvCommand(target_ip,-1);
+          A=rcvCommand(target_ip,-1);//最初は0,stepnumber=-1
         }
       }Serial.println("finish__A");
       for (int i=0;i<3;i++){  
@@ -114,13 +141,15 @@ void loop() {
         }
       }Serial.println("finish__C");
     server_mode=2;
+    
   }else{//////////////////////////////////////////////////////////////////////////////
+    multi=0;
     Serial.println("please");
     Serial.println(A);
     Serial.println(dataA);
     Serial.println(dataB);
     Serial.println(dataC);
-    for(int i=0;i<20;i++){
+    for(int i=0;i<2;i++){
        delay(1000);
        Serial.print(i);   
     }
@@ -136,7 +165,7 @@ String rcvCommand(IPAddress target,int CMD){
     WiFiClient client = server.available();
     String rstr;
     String cmd;
-    
+
     if (client.connected()) {
       if(client.remoteIP()==target){
         Serial.println("Connected to client");
@@ -159,7 +188,7 @@ String rcvCommand(IPAddress target,int CMD){
         Serial.print("target not found");
         client.stop();
       }
-    }
+    }else{client.stop();}
   } 
 }
 
