@@ -98,14 +98,17 @@ void task0(void* arg){
 bool sendSocket(String str){
   breakflag=0;
   if (client.connect(host, port)){ 
+//    Serial.print("Connected:");
+//    Serial.println(host);
     Serial.println("Posting: " + str);
  
     //送信
-    client.print(str);
-
+    client.print(str);client.print('\r');
+  
     //応答受信
     client.setTimeout(1000);
-    while (client.available() == 0) {
+    while (client.available() >= 0) {
+      client.print("0;");
       breakflag+=1;
       Serial.print(".");
       delay(100);
@@ -124,43 +127,4 @@ bool sendSocket(String str){
      Serial.println("Connection failed.");
      return false;
   }
-}
-
-int i=0;
-bool sendindex(){
-   if (!client.connect(host, port)) {
-      Serial.println("connection failed");
-      return false;
-    }
-    client.print("GO;");Serial.println("GO;");
-    delay(1);
-    Serial.print("\tsending\t");
-    for (i=0;i<3000;i++){
-     
-      client.print(box[i]);client.print(";");Serial.println(box[i]);
-//      client.print(i);client.print(";");Serial.println(i);
-      delay(3);
-    }//end for 
-    
-   Serial.println(box[2999]);
-    
-    return true;
-}
-
-
-
-bool rcv_data_from_teensy(){
-  int i=0;
-  Serial2.print(1);
-  Serial.print("\treading\t");
-  while(i<datasize){
-   if (Serial2.available() > 0) { // 受信したデータが存在する
-          String A = Serial2.readStringUntil('\n'); // 受信データを読み込む
-          box[i]=A;
-          i++;
-          
-    }delay(1);
-          
-  }Serial.println(box[2999]);
-  return true;
 }

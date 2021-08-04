@@ -10,7 +10,7 @@ volatile unsigned long time_prev = 0, time_prev_E = 0, time_prev_S = 0, time_now
 char syokisw = 0;
 volatile char inputchar = 0;
 unsigned long time_chat = 20;
-const int num = 10000;
+const int num = 3000;
 const int sw1=8;
 const int sw2=7;
 const int ledpin=3;
@@ -61,7 +61,7 @@ void setup() {
   }
 delay(1000);
   Serial.println(F("ok."));
-  for (int i=0;i<50;i++){
+  for (int i=0;i<100;i++){
     //a (1).csv
     String temp = "data";
     temp.concat(i);
@@ -129,7 +129,7 @@ void ReadAnalog() {//2000msごとに起動される
       if (blinkCount %500 == 0) {
         logging((blinkCount / 500)-1,datanumber);
       }
-      if (blinkCount >= 3000) {
+      if (blinkCount >= num) {
         datanumber++;
         blinkCount=0;
         finished=1;
@@ -140,17 +140,10 @@ void ReadAnalog() {//2000msごとに起動される
   }else{//mode:     no logging     スタンプ合わせ
     if (blinkCount % 200 == 0 ) {digitalWriteFast(9, HIGH); }
       else                        {digitalWriteFast(9, LOW) ; }
-//    if (blinkCount %500 == 0) {Serial.print("-");}
-    if (blinkCount == 1) {
-//        Serial.printf("nolog %d ",datanumber);
-      }
-    if (blinkCount >= 3000) {
-//     Serial.print("\n");
+    if (blinkCount >= num) {
       datanumber++;
-      blinkCount=0;
-        
-        }
-    
+      blinkCount=0;        
+    }    
   }
 }
 
@@ -164,6 +157,8 @@ void logging(int m,int datanumber) {
 
     for (int k = 0; k < 500; k++) {
 //      delay(1);
+      dataFile.print(k + 500 * m);
+      dataFile.print(",");
       dataFile.print(data [2][k + 500 * m]);
       dataFile.print(",");
       dataFile.print(data [1][k + 500 * m]);
@@ -217,68 +212,54 @@ String SdFileRead(int number) {  //SDファイル読み込み
    File file = SD.open(filename);
    Serial.print(F("SD FileRead: ")); Serial.println(filename);
    if(file){
-    for (int i=0; i<=3000; i++){
+    for (int i=0; i<=num+200; i++){
       String s=file.readStringUntil('\n');
-      Serial.println(s);
-      Serial1.println(s);
-//      if(i>0&&i<3000){
-//        A+=s;
-//      }else if(i>=3000&&i<6000){
-//        B+=s;
-//      }else{
-//        C+=s;
-//      }
-    } // end for
-////    Serial.println(A);Serial.println(B);Serial.println(C);
-//    str+=A;
-//    str+=B;
-//    str+=C;
-    
-//    while (file.available()) {
-//       //file.seek(500); //これは位置を変えない
-//      str=file.readStringUntil('\n');
-//      Serial1.print(str);
-////      Serial.println(str);
-//      
-////      delay(10);
-//    }Serial.print("done");
-////      str += char(file.read());}
-////      Serial.print(F(" > ")); Serial.println(str);
       
+      Serial1.println(s);Serial.println(s);
+      delay(2);
+    } // end for
    } else{Serial.println(F(" error..."));}
    file.close();
-   return str;}
+   return str;
+}
 
 
 String A="";
+String timenow="";
 void loop() {
   if (mode ==0){////////////信号待ち
-  while(digitalRead(sw1)==LOW){//HIGHになったら飛び出る//飛び出たときの時間
+  while(digitalRead(sw1)==LOW){//HIGHになったら飛び出る//飛び出たときの時間//サーバーとの同期
     time_now = millis(); 
   }myTimer.begin(ReadAnalog, 2000);  // 500 Hz//whileに戻る
-  Serial1.print("1;");
+  Serial.print("1;");
   mode=1;
   }else if (mode==1){//////////ESP待ち
-    while(digitalRead(sw2)==HIGH){//HIGHになったら飛び出る//飛び出たときの時間  
+    while(digitalRead(sw2)==LOW){//HIGHになったら飛び出る//飛び出たときの時間 
   }
   mode=2;
+  timenow=String(datanumber);
   
   }else if(mode==2 && finished==1){///////////////ESPmode
+    while(digitalRead(sw2)==HIGH){//
+      Serial1.print(timenow);Serial1.print(";");Serial.println(timenow);
+      delay(500);
+    }
     while(digitalRead(sw1)==LOW){
-//      Serial1.print("3;");
+      
       if (Serial1.available() > 0) { // 受信したデータが存在する
         A = Serial1.readStringUntil(';'); // 受信データを読み込む
-        if (A=="0"){
-          break;
-        }else if(A=="1"){
+        if(A.toInt()>0){
           Serial1.print("OK;");
           Serial.print("sending");
           SdFileRead(A.toInt());
-//          Serial.print(SdFileRead(A.toInt()));
+          Serial.print("finish");
+          while(1);
           Serial1.print("1;");
 //          delay(1000);
+        }else if(A.toInt()==0){
+          Serial.println("stamp");
         }else{
-    Serial.print("??");
+          Serial.print("?wakaran?");
         }
 //
 //        Serial.print("I received: "); // 受信データを送りかえす

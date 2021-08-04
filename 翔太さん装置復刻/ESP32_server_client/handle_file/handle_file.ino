@@ -7,7 +7,7 @@ void setup(void) {
   String A;String B;
   Serial.begin(115200); // ②Serial設定
   Serial.println ("");
-  readcsv(5000);
+  readcsv(3500);
 }
 void readcsv(int max_data){
   String A;String B;
@@ -22,17 +22,18 @@ void readcsv(int max_data){
     
     for (int i=0; i<=max_data; i++){
       String s=f.readStringUntil('\n');
-      if(i>3&&i<3000){
-        A+=s;
-      }else{
-        B+=s;
-      }
+      Serial.println(s);
+//      if(i>3&&i<3000){
+//        A+=s;
+//      }else{
+//        B+=s;
+//      }
     } // end for
     f.close();
     
   } // end if
   Serial.print(millis()-start);
-//  Serial.println(A);
+  Serial.println(A);
 //  Serial.println(B);
 }
 
