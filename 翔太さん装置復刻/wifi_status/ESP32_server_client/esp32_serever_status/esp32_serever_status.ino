@@ -16,8 +16,7 @@ int sending=0;
 String acc_data="";
 int multi=0;
 const int datasize=3000;
-
-String databox[3100];//String databoxB[3100];String databoxC[3100];
+String databox[3100];
 
 IPAddress ip(192, 168, 4, 1);
 IPAddress target_ip(192, 168, 4, 2);
@@ -64,7 +63,7 @@ void task0(void* arg)
   static int count = 0;
      while (1){      
       if (multi==1){
-           Serial.println(count);
+//           Serial.println(count);
            count++;
            if (count>50){
             while(1){
@@ -83,6 +82,25 @@ void task0(void* arg)
        delay(1000);
      }
  }
+void task1(void* arg) {
+     while (1){      
+      WiFiClient client = server.available();
+        if (client.connected()){
+          client.print("0");client.print(";");
+          Serial.println(client.remoteIP());
+        }
+     }
+ }
+
+//void task1(void* arg){
+//  while(1){
+//    WiFiClient client = server.available();
+//    if (client.connected()) {
+//        client.print("0");client.print("\r");
+//        Serial.print(client.remoteIP());
+//    }
+//  }
+//}
 
 void setup() {
   Serial.begin(115200);
@@ -101,59 +119,87 @@ void setup() {
   Serial.printf("server Mac Address: %d\n",WiFi.macAddress());//Serial.println(WiFi.macAddress());
   Serial.printf("Subnet Mask: %d\n",WiFi.subnetMask());//Serial.println(WiFi.subnetMask());
   Serial.printf("Gateway IP: %d\n",WiFi.gatewayIP());//Serial.println(WiFi.gatewayIP());
-  xTaskCreatePinnedToCore(task0, "Task0", 4096, NULL, 1, NULL, 1);
+//  xTaskCreatePinnedToCore(task0, "Task0", 4096, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(task1, "Task1", 4096, NULL, 1, NULL, 1);
   delay(500);
 }
 
 void loop() {
-  String line = "";
-  String dataA="0";
-  String dataB="0";
-  String dataC="0";String A="0";
-  while(1){
-  if (server_mode==0){//////////////////////////////////////////////////////////////////
-    while (setup_esp()!=true){
-      Serial.println("waiting");
-    }Serial.println("all modules available");
-    server_mode=1;
- }else if (server_mode==1){//////////////////////////////////////////////////////////
-  
-  multi=1;
-  Serial.printf("aaa    %d\n",multi);
-      
-       while(rcvCommand(target_ip,0)!=true);//hoge
-      while(rcv_index(target_ip)!=true);Serial.println("finish__A");
-      while(rcvCommand(target_ipB,0)!=true);
-      while(rcv_index(target_ipB)!=true);Serial.println("finish__B");
-      while(rcvCommand(target_ipC,0)!=true);
-      while(rcv_index(target_ipC)!=true);Serial.println("finish__C");
-    server_mode=2;
-    
-  }else{//////////////////////////////////////////////////////////////////////////////
-    multi=0;
-    Serial.println("please");
-    for (int i=0;i<3100;i++){
-      Serial.println(databox[i]);//Serial.println(databoxB[i]);Serial.println(databoxC[i]);
-      delay(1);
+  WiFiClient client = server.available();
+    if (client.connected()) {
+        Serial.println(client.remoteIP());
     }
-//    Serial.println(A);
-//    Serial.println(dataA);
-//    Serial.println(dataB);
-//    Serial.println(dataC);
-
-    while(1);//作業停止//////////////////////
-    for(int i=0;i<2;i++){
-       delay(1000);
-       Serial.print(i);   
-    }
-   
-    server_mode=1;
-//    while(1);
-  }
+  delay(1000);
+//  String line = "";
+//  String dataA="0";
+//  String dataB="0";
+//  String dataC="0";String A="0";
+//  while(1){
+//  if (server_mode==0){//////////////////////////////////////////////////////////////////
+//    while (setup_esp()!=true){
+//      Serial.println("waiting");
+//    }Serial.println("all modules available");
+//    server_mode=1;
+// }else if (server_mode==1){//////////////////////////////////////////////////////////
+//  
+//  multi=1;
+//  Serial.printf("aaa    %d\n",multi);
+//      for (int i=0;i<2;i++){  
+//        if(i==0){
+//          dataA=rcvCommand(target_ip,0);//hoge
+//        }else if (i==1){ 
+////          dataA=rcvCommand(target_ip,dataA.toInt());//ここで配列が送られてくる
+//          if(rcv_index(target_ip)!=true){i=0;}else{
+//            Serial.println("DONE");
+//          }
+//          
+//        }else{
+//          A=rcvCommand(target_ip,-1);//最初は0,stepnumber=-1
+//        }
+//      }Serial.println("finish__A");
+////      for (int i=0;i<3;i++){  
+////        if (i==0){ 
+////           dataB=rcvCommand_forESP2(target_ipB,-1);
+////        }else{
+//////          if(rcv_index(target_ip)!=true){i=0;}else{Serial.println("DONE"); }
+////          rcvCommand_forESP2(target_ipB,A.toInt());//hoge
+////        }
+////      }Serial.println("finish__B");
+////      for (int i=0;i<3;i++){   
+////        if (i==1){ 
+////          dataC=rcvCommand(target_ipC,-1);
+////        }else{
+////          rcvCommand(target_ipC,A.toInt());//いらｎ
+////        }
+////      }Serial.println("finish__C");
+//    server_mode=2;
+//    
+//  }else{//////////////////////////////////////////////////////////////////////////////
+//    multi=0;
+//    Serial.println("please");
+//    for (int i=0;i<3100;i++){
+//      Serial.println(databox[i]);
+//      delay(1);
+//    }
+////    Serial.println(A);
+////    Serial.println(dataA);
+////    Serial.println(dataB);
+////    Serial.println(dataC);
+//Serial.println("");
+//Serial.println(databox[2999]);
+//    while(1);//作業停止//////////////////////
+//    for(int i=0;i<2;i++){
+//       delay(1000);
+//       Serial.print(i);   
+//    }
+//   
+//    server_mode=1;
+////    while(1);
+//  }
+//}
 }
-}
 
-bool rcvCommand(IPAddress target,int CMD){
+String rcvCommand(IPAddress target,int CMD){
   while(1){
     WiFiClient client = server.available();
     String rstr;
@@ -161,7 +207,7 @@ bool rcvCommand(IPAddress target,int CMD){
 
     if (client.connected()) {
       if(client.remoteIP()==target){
-        Serial.print("Connected to client\t");Serial.println(client.remoteIP());
+        Serial.println("Connected to client");
      
         //コマンド文字列受信（文字列が来なければタイムアウトする）
         rstr = client.readStringUntil('\r');
@@ -172,20 +218,13 @@ bool rcvCommand(IPAddress target,int CMD){
         //応答送信
         cmd=String(CMD);
         client.print(cmd);client.print("\r");
-        
+        client.print("0");client.print("\r");
         //接続をクローズ
-        int i=0;
-        while (client.available()==0){
-          client.print("0");client.print("\r");
-          Serial.println("0");
-          i++;delay(100);
-          if(i>30){return false;}}
-        //送信確認
+        if (client.available()>=0){//送信確認
           client.stop();
           Serial.println("Closed");
-          return true;
-//          return rstr;
-
+           return rstr;
+        }
       }else{
         Serial.print("target not found");
         client.stop();
@@ -193,27 +232,57 @@ bool rcvCommand(IPAddress target,int CMD){
     }else{client.stop();}
   } 
 }
+String rcvCommand_forESP2(IPAddress target,int CMD){
+  while(1){
+    WiFiClient client = server.available();
+    String rstr;
+    String cmd;
 
+    if (client.connected()) {
+      if(client.remoteIP()==target){
+        Serial.println("Connected to client");
+     
+        //コマンド文字列受信（文字列が来なければタイムアウトする）
+        rstr = client.readStringUntil('\r');
+        Serial.print("[");
+        Serial.print(rstr);
+        Serial.println("]");
 
+        //応答送信
+        
+        while (client.readStringUntil(';')=="0"){//送信確認
+          cmd=String(CMD);
+          client.print(cmd);client.print(";");
+
+        }client.stop();
+          Serial.println("Closed");
+           return rstr;
+      }else{
+        Serial.print("target not found");
+        client.stop();
+      }
+    }else{client.stop();}
+  } 
+}
+int i=0;
 bool rcv_index(IPAddress target){
-  int i=0;
     WiFiClient client = server.available();
       if(client.remoteIP()==target){
-        while(client.readStringUntil(';')!="GO");
+        while(client.readStringUntil(';')=="GO");
         delay(1);
         while (i<3000) {
            if (client.available()>0) { 
               String c = client.readStringUntil(';');
               databox[i]=c;
               i++;
-            }delay(1);Serial.print(client.remoteIP());  Serial.print("\t");    Serial.println(i);  
+            }delay(1);Serial.println(i);  
          }
           client.stop();
           Serial.println("Closed");
          return true;
       }else{
-        Serial.print("+");
-        delay(500);
+        Serial.println("target not found");
+//        delay(500);
         client.stop();
         return false;
       }

@@ -93,7 +93,23 @@ void task0(void* arg){
      }
  }
 
-
+void task1(void* arg){
+     while (1){
+      WiFiClient client;
+      if(client.connect(host, port)){
+      if (client.available() >= 0){
+        String A=client.readStringUntil(';');
+        Serial.print("A======");Serial.println(A);
+        if(A.toInt()==0){
+          while(1){
+            Serial.print("aaa=");Serial.println(A);
+            digitalWrite(4,HIGH);
+          }
+        }
+      }
+ }Serial.println("NO");delay(1000);
+ }
+}
  
 bool sendSocket(String str){
   breakflag=0;
@@ -151,13 +167,15 @@ bool sendindex(){
 
 bool rcv_data_from_teensy(){
   int i=0;
-  Serial2.print(1);
+  Serial2.print(1);//欲しいデータのステップ番号
   Serial.print("\treading\t");
-  for (i=0;i<datasize;i++){
-          box[i]=i+",123,789";
+  while(i<datasize){
+   if (Serial2.available() > 0) { // 受信したデータが存在する
+          String A = Serial2.readStringUntil('\n'); // 受信データを読み込む
+          box[i]=A;
           i++;
-          delay(1);
-    }
+          
+    }delay(1);
           
   }Serial.println(box[2999]);
   return true;

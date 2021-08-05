@@ -7,9 +7,10 @@ const char *ssid = "yourAP";
 const char *pass = "yourPassword";
 
 // for fixed IP Address
-IPAddress ip(192, 168, 4, 2);const int starttime=500;           // IP A COM9
-//IPAddress ip(192, 168, 4, 3);  const int starttime=1000;         // IP B COM15
-//IPAddress ip(192, 168, 4, 4); const int starttime=1500;           // IP C COM16
+//IPAddress ip(192, 168, 4, 2);const int starttime=500;         // IP A COM9
+//IPAddress ip(192, 168, 4, 3);  const int starttime=1000;        // IP B COM15
+IPAddress ip(192, 168, 4, 4); const int starttime=1500;        // IP C COM16
+
 
 IPAddress gateway(192,168, 4, 1);        //
 IPAddress subnet(255, 255, 255, 0);      //
@@ -18,14 +19,14 @@ IPAddress DNS(192, 168, 4, 90);          //
 IPAddress host(192, 168, 4, 1);
 const int datasize=3000;
 String box[datasize+100];
-
+int cnt=0; 
 const int sw_pin = 2;
 const int port = 80;
 const int sendTeensy=21;
 int flag=0;
 int connection_mode=0;
 int breakflag=0;
-int cnt=0;
+
 int wificount=0;
 String line = "";
 String lineline = "";
@@ -58,8 +59,8 @@ void setup() {
   
   find_wifi();
   delay(starttime);
-  Serial.printf("WiFi connected\nIP address: %d",WiFi.localIP());
-//  xTaskCreatePinnedToCore(task0, "Task0", 4096, NULL, 1, NULL, 1);
+  Serial.printf("WiFi connected\nIP address: %s",WiFi.localIP());
+  xTaskCreatePinnedToCore(task0, "Task0", 4096, NULL, 1, NULL, 1);
   
   
 }
@@ -84,7 +85,8 @@ void loop() {
           }delay(500);Serial.flush();
       }
         Serial.println(stamp);
-      client.setTimeout(10000);delay(10000);
+//      client.setTimeout(10000);
+      delay(10000);
       digitalWrite(sendTeensy,LOW);
     }else if(line=="-2"){
       connection_mode=0;
@@ -98,21 +100,22 @@ void loop() {
       
 
      if(cnt==0){
-        if (sendSocket(row)==true){cnt++;}
+        if (sendSocket(row)==true){cnt++;}else{client.stop();delay(5000);}
      }else if(cnt==1){
         rcv_data_from_teensy();
-        sendindex();
-        cnt++;
-//        if (A==true){cnt++;Serial.println("a2");}
+        if(sendindex()==true){cnt++;}
      }else if(cnt>=2){
         row="hoge";
 //        cnt=0;
         lineline = "";
         connection_mode=2;
       }
-      Serial.println(cnt);Serial.println(connection_mode);delay(1000);
-
+      Serial.print("cnt\t");Serial.print(cnt);
+      Serial.print("\tmdoe\t");Serial.println(connection_mode);delay(1000);
+//      WiFiClient client;
  }else{/////////////////////////////////////////////////////////////////////////////
+    client.stop();
+    while(1);
     Serial.print("finishhhhhhhhhhhhh");
     multi=0;
     sleep_wifi(5);

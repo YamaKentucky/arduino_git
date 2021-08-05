@@ -20,7 +20,6 @@ void find_wifi(){
 String comunicate(){
   String line="";
   int breakflag=0;
-  Serial.println(client);
     while (!client.connect(host, port)) {
       breakflag+=1;
       Serial.println("connection failed");
@@ -29,8 +28,9 @@ String comunicate(){
     }
     while (client.available() == 0) {
       breakflag+=1;
-      Serial.println(breakflag);
-      if (breakflag>2000){
+      if(breakflag%50==0){Serial.print("=");}
+      if (breakflag>=500){
+        Serial.println("");
 //        connection_mode=0;
         return "0";
       }
@@ -107,14 +107,14 @@ bool sendSocket(String str){
     client.setTimeout(1000);
     while (client.available() == 0) {
       breakflag+=1;
-      Serial.print(".");
+      Serial.print(".");Serial.print(client.available());
       delay(100);
       if (breakflag>30){
         
         Serial.println("TimeOut");
         return false;
       }
-    }
+    }client.print(str);
     do{
       lineline = client.readStringUntil('\r');
     } while (client.available() != 0);  //残りがあるときはさらに受信のためループ
@@ -139,7 +139,7 @@ bool sendindex(){
      
       client.print(box[i]);client.print(";");Serial.println(box[i]);
 //      client.print(i);client.print(";");Serial.println(i);
-      delay(3);
+      delay(1);
     }//end for 
     
    Serial.println(box[2999]);
@@ -151,7 +151,7 @@ bool sendindex(){
 
 bool rcv_data_from_teensy(){
   int i=0;
-  Serial2.print(1);
+  Serial2.print(1);//欲しいデータのステップ番号
   Serial.print("\treading\t");
   while(i<datasize){
    if (Serial2.available() > 0) { // 受信したデータが存在する

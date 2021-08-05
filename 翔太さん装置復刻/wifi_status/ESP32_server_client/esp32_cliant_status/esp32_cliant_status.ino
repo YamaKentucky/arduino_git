@@ -60,6 +60,7 @@ void setup() {
   delay(starttime);
   Serial.printf("WiFi connected\nIP address: %d",WiFi.localIP());
 //  xTaskCreatePinnedToCore(task0, "Task0", 4096, NULL, 1, NULL, 1);
+xTaskCreatePinnedToCore(task1, "Task1", 4096, NULL, 1, NULL, 1);
   
   
 }
@@ -95,11 +96,15 @@ void loop() {
     row=stamp;
  }else if (connection_mode==1){//////////////////////////////////////////////////////
       multi=1;
+      
+
      if(cnt==0){
         if (sendSocket(row)==true){cnt++;}
      }else if(cnt==1){
         rcv_data_from_teensy();
-        if (sendindex();==true){cnt++;Serial.println("a2");}
+        sendindex();
+        cnt++;
+//        if (A==true){cnt++;Serial.println("a2");}
      }else if(cnt>=2){
         row="hoge";
 //        cnt=0;
@@ -117,3 +122,22 @@ void loop() {
     find_wifi();
  }
 }
+
+
+//＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃
+//      if(sendSocket(row)==true){
+//        Serial.print("lineline");Serial.println(lineline);
+//        if (lineline.toInt()>0){
+//          Serial2.print("1;");//Serial2.print(";");
+//          Serial.print(lineline);Serial.print(";");
+//          while(1);
+////          row=box;
+//          row="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0";
+//        }else if (lineline=="0"){//"what number of datastep??"
+//          
+//          row="10000";
+//        }else{
+//          row=data_lomg;
+//        }
+//        cnt++;
+//      }
