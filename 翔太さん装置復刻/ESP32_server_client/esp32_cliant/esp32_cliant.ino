@@ -17,12 +17,13 @@ IPAddress subnet(255, 255, 255, 0);      //
 IPAddress DNS(192, 168, 4, 90);          //
 
 IPAddress host(192, 168, 4, 1);
-const int datasize=3000;
+const int datasize=3000;//MAX3000
 String box[datasize+100];
+
 int cnt=0; 
 const int sw_pin = 2;
 const int port = 80;
-const int sendTeensy=21;
+const int sendTeensy=22;
 int flag=0;
 int connection_mode=0;
 int breakflag=0;
@@ -50,6 +51,8 @@ void setup() {
   pinMode(sendTeensy, OUTPUT);
   digitalWrite(sendTeensy,LOW);
   pinMode(5, OUTPUT);    pinMode(4, OUTPUT);   // set the LED pin mode
+  pinMode(23, OUTPUT);
+  digitalWrite(23,LOW);
 //  for (int i=0;i<datasize;i++){
 //    box[i]="";
 //  }
@@ -85,8 +88,8 @@ void loop() {
           }delay(500);Serial.flush();
       }
         Serial.println(stamp);
-//      client.setTimeout(10000);
-      delay(10000);
+//        client.setTimeout(20000);
+      delay(1000);
       digitalWrite(sendTeensy,LOW);
     }else if(line=="-2"){
       connection_mode=0;
@@ -100,13 +103,14 @@ void loop() {
       
 
      if(cnt==0){
-        if (sendSocket(row)==true){cnt++;}else{client.stop();delay(5000);}
+        if (sendSocket(row)==true){cnt++;}else{client.stop();delay(5000);}  
      }else if(cnt==1){
-        rcv_data_from_teensy();
+       rcv_data_from_teensy();cnt++;
+     }else if(cnt==2){
         if(sendindex()==true){cnt++;}
-     }else if(cnt>=2){
+     }else if(cnt>2){
         row="hoge";
-//        cnt=0;
+//        
         lineline = "";
         connection_mode=2;
       }
@@ -114,11 +118,12 @@ void loop() {
       Serial.print("\tmdoe\t");Serial.println(connection_mode);delay(1000);
 //      WiFiClient client;
  }else{/////////////////////////////////////////////////////////////////////////////
-    client.stop();
-    while(1);
+   
+   client.stop();
+   cnt=0;
     Serial.print("finishhhhhhhhhhhhh");
     multi=0;
-    sleep_wifi(5);
+    sleep_wifi(20);
     connection_mode=1;
     
     find_wifi();

@@ -7,11 +7,12 @@ void setup(void) {
   String A;String B;
   Serial.begin(115200); // ②Serial設定
   Serial.println ("");
-  readcsv(3500);
+  writeFile();
+  readcsv(3000);
 }
 void readcsv(int max_data){
   String A;String B;
-  SPIFFS.begin(); // ③SPIFFS開始
+  SPIFFS.begin(true); // ③SPIFFS開始
   File f = SPIFFS.open("/accdata.csv", "r");
   int start=millis();
   if (!f) {
@@ -37,5 +38,17 @@ void readcsv(int max_data){
 //  Serial.println(B);
 }
 
+void writeFile(){
+    SPIFFS.begin(true); // ③SPIFFS開始
+    File file = SPIFFS.open("/accdata.csv", "w");
+    if(!file){
+        Serial.println("Failed to open file for writing");
+        return;
+    }
+    for (int i=0;i<=3000;i++){
+      file.println(i);
+    }
+    file.close();
+}
 void loop(void){
 }

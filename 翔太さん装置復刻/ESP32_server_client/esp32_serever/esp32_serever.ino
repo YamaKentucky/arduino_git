@@ -1,6 +1,7 @@
 /*サーバー側*/
 
 #include <WiFi.h>
+#include <SPIFFS.h> 
 
 const char *ssid = "yourAP";
 const char *pass = "yourPassword";
@@ -67,7 +68,7 @@ void task0(void* arg)
            Serial.println(count);
            count++;
            if (count>50){
-            while(1){
+            while(multi==0){
               count++;
               if(count%2==0){
               digitalWrite(led_pin, LOW);digitalWrite(led_pin2, LOW);digitalWrite(led_pin3, LOW);
@@ -122,35 +123,20 @@ void loop() {
   Serial.printf("aaa    %d\n",multi);
       
        while(rcvCommand(target_ip,0)!=true);//hoge
-      while(rcv_index(target_ip)!=true);Serial.println("finish__A");
+      while(rcv_index(target_ip,"/accdata1.csv")!=true);Serial.println("finish__A");
       while(rcvCommand(target_ipB,0)!=true);
-      while(rcv_index(target_ipB)!=true);Serial.println("finish__B");
+      while(rcv_index(target_ipB,"/accdata2.csv")!=true);Serial.println("finish__B");
       while(rcvCommand(target_ipC,0)!=true);
-      while(rcv_index(target_ipC)!=true);Serial.println("finish__C");
+      while(rcv_index(target_ipC,"/accdata3.csv")!=true);Serial.println("finish__C");
     server_mode=2;
     
   }else{//////////////////////////////////////////////////////////////////////////////
     multi=0;
     Serial.println("please");
-    for (int i=0;i<3100;i++){
-      Serial.println(databox[i]);//Serial.println(databoxB[i]);Serial.println(databoxC[i]);
-      delay(1);
-    }
-//    Serial.println(A);
-//    Serial.println(dataA);
-//    Serial.println(dataB);
-//    Serial.println(dataC);
-
-    while(1);//作業停止//////////////////////
-    for(int i=0;i<2;i++){
-       delay(1000);
-       Serial.print(i);   
-    }
-   
+    show();
     server_mode=1;
-//    while(1);
   }
-}
+ }
 }
 
 bool rcvCommand(IPAddress target,int CMD){
@@ -195,8 +181,8 @@ bool rcvCommand(IPAddress target,int CMD){
 }
 
 
-bool rcv_index(IPAddress target){
-  int i=0;
+bool rcv_index(IPAddress target,char * path){
+  int i=0;SPIFFS.begin(); // ③SPIFFS開始
     WiFiClient client = server.available();
       if(client.remoteIP()==target){
         while(client.readStringUntil(';')!="GO");
@@ -206,10 +192,13 @@ bool rcv_index(IPAddress target){
               String c = client.readStringUntil(';');
               databox[i]=c;
               i++;
-            }delay(1);Serial.print(client.remoteIP());  Serial.print("\t");    Serial.println(i);  
+            }//delay(1);
+            Serial.print(client.remoteIP());  Serial.print("\t");    Serial.println(i);  
          }
+         
           client.stop();
           Serial.println("Closed");
+          writeFile(path);
          return true;
       }else{
         Serial.print("+");
@@ -218,142 +207,55 @@ bool rcv_index(IPAddress target){
         return false;
       }
 }
+
+
+void writeFile(const char *path){
     
+    File file = SPIFFS.open(path, "w");
+    if(!file){
+        Serial.println("Failed to open file for writing");
+        return;
+    }
+    for (int i=0;i<=3000;i++){
+      file.println(databox[i]);
+    }
+    file.close();
+}
 ///*################################################################*/
+void readcsv(const char *path){
+  SPIFFS.begin(); 
+  File f = SPIFFS.open(path, "r");
+  int start=millis();
+  if (!f) {
+    Serial.println("file open failed");
+  } else {
+    Serial.println("====== Reading from SPIFFS file =======");    
+    for (int i=0; i<=3000; i++){
+      String s=f.readStringUntil('\n');
+      Serial.println(s);
+    } // end for
+    f.close();
+  } 
+}
 
-//String comunicate(){
-//  String line="";
-////  client.print("1222");client.print("\n");
-//  while (client.available() == 0) {
-//    client.print("1222");client.print("\n");
-//    Serial.println("..");
-//    delay(1000);
-//  }flag=0;
-//  while(client.available()) {
-//    line = client.readStringUntil('\n');
-//  }
-//  return line;
-//}
-
-
-//int recv_data(){
-//  WiFiClient client = server.available();
-//  if(client.remoteIP()==target_ip && target==0){
-////    target=1;
-//    if(sending==0){
-//      String line="";
-//      client.print("1212");
-//      while (client.available() == 0) {
-//        
-//        delay(1000);
-//      }
-//      while(client.available()) {
-//        line = client.readStringUntil('\n');
-//      }Serial.print(line);sending=1;
-//    }else{
-//      String line="";
-//      client.print("1212");
-//      while (client.available() == 0) {
-//        
-//        delay(1000);
-//      }
-//      while(client.available()) {
-//        line = client.readStringUntil('\n');
-//      }Serial.print(line);
-//      target=1;sending=0;
-//      
-//      Serial.println("finish");
-//    }
-//  }
-//  if(client.remoteIP()==target_ipB  && target==1){
-//    if(sending==0){
-//      String line="";
-//      client.print("1212");
-//      while (client.available() == 0) {
-//        delay(1000);
-//      }
-//      while(client.available()) {
-//        line = client.readStringUntil('\n');
-//      }Serial.print(line);sending=1;
-//    }else{
-//      String line="";
-//      client.print("1212");
-//      while (client.available() == 0) {
-//        delay(1000);
-//      }
-//      while(client.available()) {
-//        line = client.readStringUntil('\n');
-//      }Serial.print(line);
-//      target=2;sending=0;
-//      
-//      Serial.println("finish");
-//    }
-//  }
-//  if(client.remoteIP()==target_ipC  && target==2){
-//    if(sending==0){
-//      String line="";
-//      client.print("1212");
-//      while (client.available() == 0) {
-//        delay(1000);
-//      }
-//      while(client.available()) {
-//        line = client.readStringUntil('\n');
-//      }Serial.print(line);sending=1;
-//    }else{
-//      String line="";
-//      client.print("1212");
-//      while (client.available() == 0) {
-//        delay(1000);
-//      }
-//      while(client.available()) {
-//        line = client.readStringUntil('\n');
-//      }Serial.print(line);
-//      target=3;sending=0;
-//      
-//      Serial.println("finish");
-//    }
-//  }
-//  if(target==3){
-//    target=0;
-//    return true;
-//  }
-//  Serial.println(target);
-//  delay(1000);
-//  return false;
-//}
-//
-//
-////void comunicate_esp(client){
-////    while (!client.connect(host, port)) {
-////      Serial.println("connection failed");
-////      delay(1000);
-////      return;
-////    }
-////    while (client.available() == 0) {
-//////      Serial.println("b");
-////      delay(10);
-////        }
-////    while(client.available()) {
-////      line = client.readStringUntil('\n');
-////      Serial.println(line);
-////    }
-////    return line
-////}
-//
-//
-////void loop() {
-////  WiFiClient client = server.available();
-////
-//////  if(client.remoteIP()==target_ip){
-//// while(client >0){
-////    Serial.println(client.remoteIP());
-////    while(client.connected()){
-////      client.println("println");
-////      delay(1000);
-////      client.println("\n");
-////    }
-////  }
-////  delay(2000);
-////  client.stop();
-////  Serial.println("client disconnected");
-////  }
+void show(){
+      while(1){
+       int inByte = Serial.read();
+        switch (inByte) {
+          case 'a':
+            readcsv("/accdata1.csv");
+            break;
+          case 'b':
+            readcsv("/accdata2.csv");
+            break;
+          case 'c':
+            Serial.println("exit");
+//              WiFi.mode(WIFI_OFF);
+  //           readcsv("/accdata3.csv");
+              return;
+            break;
+          default:
+            digitalWrite(led_pin, HIGH);digitalWrite(led_pin2, HIGH);digitalWrite(led_pin3, HIGH);
+            }
+      }
+}

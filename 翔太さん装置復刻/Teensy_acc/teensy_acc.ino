@@ -37,13 +37,13 @@ void setup() {
   pinMode(ledpin, OUTPUT);  //EPM
   pinMode(4, INPUT);  //EPM
   pinMode(9, OUTPUT);  //LED_log
-  pinMode(10, OUTPUT); //LED_EPM,Syoki
-//  pinMode(7, OUTPUT); //douki
+  pinMode(10, INPUT_PULLUP); //sw
+
   pinMode(sw1, INPUT); //sw
-  pinMode(sw2, INPUT); //sw
+  pinMode(sw2, INPUT_PULLDOWN); //sw
 
   Serial.begin(9600);Serial1.begin(115200);
-  digitalWriteFast(9, HIGH);
+   digitalWrite(9, LOW);
 
 
   Serial.println(F("Initializing SD card..."));
@@ -61,22 +61,22 @@ void setup() {
   }
 delay(1000);
   Serial.println(F("ok."));
-  for (int i=0;i<100;i++){
+  for (int i=0;i<1000;i++){
     //a (1).csv
     String temp = "data";
     temp.concat(i);
     temp.concat(".csv");
     char filename[temp.length()+1];
     temp.toCharArray(filename, sizeof(filename));
-    Serial.print(filename);
+//    Serial.print(filename);
   if(SD.exists(filename)){
       SD.remove(filename);
-      Serial.printf("find%s\n",filename);
+//      Serial.printf("find%s\n",filename);
     }else{
       Serial.printf("NOTFIND %d\n",i);
     }
   }
-  digitalWriteFast(9, HIGH);
+  digitalWrite(9, HIGH);
 }
 
 
@@ -212,11 +212,10 @@ String SdFileRead(int number) {  //SDファイル読み込み
    File file = SD.open(filename);
    Serial.print(F("SD FileRead: ")); Serial.println(filename);
    if(file){
-    for (int i=0; i<=num+200; i++){
+    for (int i=0; i<num; i++){
       String s=file.readStringUntil('\n');
       
       Serial1.println(s);Serial.println(s);
-      delay(2);
     } // end for
    } else{Serial.println(F(" error..."));}
    file.close();
@@ -244,8 +243,8 @@ void loop() {
       Serial1.print(timenow);Serial1.print(";");Serial.println(timenow);
       delay(500);
     }
-    while(digitalRead(sw1)==LOW){
-      
+//    while(digitalRead(10)==LOW){
+      while(analogRead(A9)<1000){
       if (Serial1.available() > 0) { // 受信したデータが存在する
         A = Serial1.readStringUntil(';'); // 受信データを読み込む
         if(A.toInt()>0){
@@ -253,8 +252,6 @@ void loop() {
           Serial.print("sending");
           SdFileRead(A.toInt());
           Serial.print("finish");
-          while(1);
-          Serial1.print("1;");
 //          delay(1000);
         }else if(A.toInt()==0){
           Serial.println("stamp");

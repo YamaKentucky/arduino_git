@@ -83,11 +83,11 @@ void task0(void* arg){
      while (1){
          if(WiFi.status() != WL_CONNECTED && connection_mode!=0){
           if (multi==1){
-           static int count = 0;
            Serial.print("task 0 : \t\t\t\t\t\t\t\t2222222");
-           ESP.restart();
-           Serial.println(count++);
+           digitalWrite(23,HIGH);//teensy loggingmode
            delay(1000);
+           ESP.restart();
+           
          }
          }
      }
@@ -127,7 +127,9 @@ bool sendSocket(String str){
 }
 
 int i=0;
+
 bool sendindex(){
+//String box[80000];  
    if (!client.connect(host, port)) {
       Serial.println("connection failed");
       return false;
@@ -135,21 +137,16 @@ bool sendindex(){
     client.print("GO;");Serial.println("GO;");
     delay(1);
     Serial.print("\tsending\t");
-    for (i=0;i<3000;i++){
-     
+    for (i=0;i<datasize;i++){
       client.print(box[i]);client.print(";");Serial.println(box[i]);
-//      client.print(i);client.print(";");Serial.println(i);
-      delay(1);
     }//end for 
-    
-   Serial.println(box[2999]);
-    
     return true;
 }
 
 
 
 bool rcv_data_from_teensy(){
+// String box[80000];  
   int i=0;
   Serial2.print(1);//欲しいデータのステップ番号
   Serial.print("\treading\t");
@@ -157,10 +154,8 @@ bool rcv_data_from_teensy(){
    if (Serial2.available() > 0) { // 受信したデータが存在する
           String A = Serial2.readStringUntil('\n'); // 受信データを読み込む
           box[i]=A;
-          i++;
-          
-    }delay(1);
-          
-  }Serial.println(box[2999]);
+          i++;          
+    }  
+  }//Serial.println(box[2999]);
   return true;
 }
