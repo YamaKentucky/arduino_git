@@ -18,6 +18,8 @@ const int ledpin=3;
 
 float data [3] [num];
 volatile unsigned long blinkCount = 0; // use volatile for shared variables
+bool logstatus=false;
+int datanumber=1;
 int amari;
 int t0, t1;
 int starttime;
@@ -106,10 +108,12 @@ delay(1000);
 //}
 
 
-int datanumber=1;
 
-void ReadAnalog() {//2000msごとに起動される
-  
+int B=0;
+int cut = 1000;
+void ReadAnalog() {//2msごとに起動される
+Serial.println(millis());
+while(1){
   Z = analogRead(A0);
   t1 = millis();// - t0;
   
@@ -117,6 +121,7 @@ void ReadAnalog() {//2000msごとに起動される
   data [1] [blinkCount] = t1;
   data [2] [blinkCount] = time_now;
   blinkCount++;
+  delay(1);
   if(mode!=2 || finished!=1){
       if (blinkCount % 500 == 0 ) {digitalWriteFast(9, HIGH); }
       else                        {digitalWriteFast(9, LOW) ; }
@@ -124,18 +129,25 @@ void ReadAnalog() {//2000msごとに起動される
       if (blinkCount == 1) {
         starttime=millis();
         finished=0;
-        Serial.printf("data %d ",datanumber);
       }
-      if (blinkCount %500 == 0) {
-        logging((blinkCount / 500)-1,datanumber);
-      }
+      if (blinkCount %cut == 0) {
+        logstatus=true;
+        int A=millis();
+        logging((blinkCount / cut)-1,datanumber);    
+        int delaytime=250-(millis()-A);
+        if(delaytime<0){delaytime=0;}
+        delay(delaytime);
+        Serial.println(millis()-A);
+      }else{logstatus=false;}
+      
       if (blinkCount >= num) {
         datanumber++;
         blinkCount=0;
         finished=1;
+        return;
     //    finishtime=millis();    
 //        myTimer.end();
-        Serial.println("Finished\t");
+//        Serial.println("Finished\t");
       }  
   }else{//mode:     no logging     スタンプ合わせ
     if (blinkCount % 200 == 0 ) {digitalWriteFast(9, HIGH); }
@@ -145,7 +157,7 @@ void ReadAnalog() {//2000msごとに起動される
       blinkCount=0;        
     }    
   }
-}
+}}
 
 void logging(int m,int datanumber) {
     String temp = "data";
@@ -155,53 +167,19 @@ void logging(int m,int datanumber) {
     temp.toCharArray(filename, sizeof(filename));
     dataFile = SD.open(filename, FILE_WRITE);
 
-    for (int k = 0; k < 500; k++) {
+    for (int k = 0; k < cut; k++) {
 //      delay(1);
-      dataFile.print(k + 500 * m);
+      dataFile.print(k + cut * m);
       dataFile.print(",");
-      dataFile.print(data [2][k + 500 * m]);
+      dataFile.print(data [2][k + cut * m]);
       dataFile.print(",");
-      dataFile.print(data [1][k + 500 * m]);
+      dataFile.print(data [1][k + cut * m]);
       dataFile.print(",");
-      dataFile.println(data[0][k + 500 * m]);
+      dataFile.println(data[0][k + cut * m]);
     }
     dataFile.close();
-  Serial.print("*");
+//  Serial.print("*");
 }
-
-/*void EPM() {
-  time_now_E = millis(); //現在の割り込み時刻を取得
-  if ( time_now_E - time_prev_E > time_chat) {
-    if ( sw_E == LOW ) //前回の割り込みから20[ms]以上経過かつスイッチの状態がLowならば、LED消点灯を切り替え
-      switch (inputchar) {
-        case 0:
-          digitalWrite(10, HIGH); //LED表示
-          Serial.print("EPM ON\n");//EPMをONにする
-          digitalWrite(4, HIGH);
-          delay(2000);
-          digitalWrite(4, LOW);
-          inputchar = 1;
-          break;
-
-        case 1:
-          digitalWrite(10, LOW); //LED表示
-          Serial.print("EPM OFF\n");//EPMをOFFにする
-          digitalWrite(3, HIGH);
-          delay(500);
-          digitalWrite(4, HIGH);
-          delay(2000);
-          digitalWrite(4, LOW);
-          delay(500);
-          digitalWrite(3, LOW);
-          inputchar = 0;
-          break;
-      }
-    sw_E = !sw_E; //前回の割り込みから20[ms]以上経過ならば、スイッチの状態を切り替え
-  }
-  time_prev_E = time_now_E; //現在の割り込み時刻を前回の割り込み時刻へコピー
-  }
-*/
-
 String SdFileRead(int number) {  //SDファイル読み込み
    String A="";String B="";String C="";String str;
    String temp = "ddata";
@@ -227,22 +205,19 @@ String A="";
 String timenow="";
 void loop() {
   if (mode ==0){////////////信号待ち
-  while(digitalRead(sw1)==LOW){//HIGHになったら飛び出る//飛び出たときの時間//サーバーとの同期
-    time_now = millis(); 
-  }myTimer.begin(ReadAnalog, 2000);  // 500 Hz//whileに戻る
-  Serial.print("1;");
-  mode=1;
+    while(digitalRead(sw1)==LOW);//HIGHになったら飛び出る//飛び出たときの時間//サーバーとの同期
+      time_now = millis(); 
+      myTimer.begin(ReadAnalog, 4000000); //2000μs==0.002s==2ms//microsecounds // 500 Hz//whileに戻る
+      mode=1;
   }else if (mode==1){//////////ESP待ち
-    while(digitalRead(sw2)==LOW){//HIGHになったら飛び出る//飛び出たときの時間 
-  }
-  mode=2;
-  timenow=String(datanumber);
-  
+    while(digitalRead(sw2)==LOW){digitalWrite(9, LOW);}//HIGHになったら飛び出る//飛び出たときの時間 
+      mode=2;
+      timenow=String(datanumber);    
   }else if(mode==2 && finished==1){///////////////ESPmode
     while(digitalRead(sw2)==HIGH){//
-      Serial1.print(timenow);Serial1.print(";");Serial.println(timenow);
+      Serial1.print(timenow);Serial1.print(";");
       delay(500);
-    }
+    }Serial.println(timenow);
 //    while(digitalRead(10)==LOW){
       while(analogRead(A9)<1000){
       if (Serial1.available() > 0) { // 受信したデータが存在する
