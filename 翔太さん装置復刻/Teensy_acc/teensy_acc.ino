@@ -110,7 +110,7 @@ delay(1000);
 
 
 int B=0;
-int cut = 1000;
+int cut = 3000;
 void ReadAnalog() {//2msごとに起動される
 Serial.println(millis());
 while(1){
@@ -118,8 +118,8 @@ while(1){
   t1 = millis();// - t0;
   
   data [0] [blinkCount] = Z;
-  data [1] [blinkCount] = t1;
-  data [2] [blinkCount] = time_now;
+  data [1] [blinkCount] = t1;//システム稼働時間
+  data [2] [blinkCount] = t1-time_now;//記録開始してからの時間
   blinkCount++;
   delay(1);
   if(mode!=2 || finished!=1){
@@ -202,7 +202,7 @@ String SdFileRead(int number) {  //SDファイル読み込み
 
 
 String A="";
-String timenow="";
+String datanow="";
 void loop() {
   if (mode ==0){////////////信号待ち
     while(digitalRead(sw1)==LOW);//HIGHになったら飛び出る//飛び出たときの時間//サーバーとの同期
@@ -212,12 +212,12 @@ void loop() {
   }else if (mode==1){//////////ESP待ち
     while(digitalRead(sw2)==LOW){digitalWrite(9, LOW);}//HIGHになったら飛び出る//飛び出たときの時間 
       mode=2;
-      timenow=String(datanumber);    
+      datanow=String(datanumber);    
   }else if(mode==2 && finished==1){///////////////ESPmode
     while(digitalRead(sw2)==HIGH){//
-      Serial1.print(timenow);Serial1.print(";");
+      Serial1.print(datanow);Serial1.print(";");
       delay(500);
-    }Serial.println(timenow);
+    }Serial.println(datanow);
 //    while(digitalRead(10)==LOW){
       while(analogRead(A9)<1000){
       if (Serial1.available() > 0) { // 受信したデータが存在する
