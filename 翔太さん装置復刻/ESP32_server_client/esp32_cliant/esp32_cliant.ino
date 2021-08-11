@@ -7,9 +7,9 @@ const char *ssid = "yourAP";
 const char *pass = "yourPassword";
 
 // for fixed IP Address
-//IPAddress ip(192, 168, 4, 2);const int starttime=500;         // IP A COM9
-//IPAddress ip(192, 168, 4, 3);  const int starttime=1000;        // IP B COM15
-IPAddress ip(192, 168, 4, 4); const int starttime=1500;        // IP C COM16
+IPAddress ip(192, 168, 4, 2);const int starttime=500;         // IP A COM9
+//IPAddress ip(192, 168, 4, 3);const int starttime=1000;        // IP B COM15
+//IPAddress ip(192, 168, 4, 4);const int starttime=1500;        // IP C COM16
 
 
 IPAddress gateway(192,168, 4, 1);        //
@@ -62,14 +62,16 @@ void setup() {
   
   find_wifi();
   delay(starttime);
-  Serial.printf("WiFi connected\nIP address: %s",WiFi.localIP());
+  Serial.print("WiFi connected\nIP address: ");
+  Serial.println(WiFi.localIP());
   xTaskCreatePinnedToCore(task0, "Task0", 4096, NULL, 1, NULL, 1);
   
   
 }
 String stamp="";
 void loop() {
-  Serial.printf("mode\t\t%d\n",connection_mode);
+  Serial.printf("mode:%d\t cnt:%d\n",connection_mode,cnt);
+  
   if(connection_mode==0){////////////////////////////////////////////////////////////
     find_wifi();/*wifiが無ければスリープモードに移行する*/
     WiFiClient client;
@@ -103,25 +105,30 @@ void loop() {
       
 
      if(cnt==0){
-        if (sendSocket(row)==true){cnt++;}else{client.stop();delay(5000);}  
+        if (sendSocket(row)==true){cnt++;}else{client.stop();delay(5000);}  //5000
      }else if(cnt==1){
-       rcv_data_from_teensy();cnt++;
+      Serial.println(lineline.toInt());
+       rcv_data_from_teensy(lineline.toInt());cnt++;//
      }else if(cnt==2){
-        if(sendindex()==true){cnt++;}
+       if(sendindex()==true){cnt++;}else{client.stop();delay(500);}  
      }else if(cnt>2){
-        row="hoge";
-//        
+        row="hoge";       
         lineline = "";
         connection_mode=2;
       }
-      Serial.print("cnt\t");Serial.print(cnt);
-      Serial.print("\tmdoe\t");Serial.println(connection_mode);delay(1000);
+//      Serial.print("cnt\t");Serial.print(cnt);
+//      Serial.print("\t mode \t");Serial.println(connection_mode);
+      delay(500);
 //      WiFiClient client;
+ }else if(connection_mode==2){
+      Serial.println("waiting");
+      delay(5000);
+      connection_mode=3;
  }else{/////////////////////////////////////////////////////////////////////////////
    
    client.stop();
    cnt=0;
-    Serial.print("finishhhhhhhhhhhhh");
+    Serial.println("finish");
     multi=0;
     sleep_wifi(20);
     connection_mode=1;

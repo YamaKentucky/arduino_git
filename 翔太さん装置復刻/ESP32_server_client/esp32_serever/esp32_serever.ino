@@ -8,6 +8,7 @@ const char *pass = "yourPassword";
 static const int led_pin = 2;
 static const int led_pin2 = 0;
 static const int led_pin3 = 4;
+int wifistatus=0;
 int target=0;
 int server_mode=0;
 int flag=0;
@@ -17,7 +18,8 @@ int sending=0;
 String acc_data="";
 int multi=0;
 const int datasize=3000;
-
+int number=0;
+String rstr;
 String databox[3100];//String databoxB[3100];String databoxC[3100];
 
 IPAddress ip(192, 168, 4, 1);
@@ -62,8 +64,18 @@ int setup_esp(){
 
 void task0(void* arg)
  {
+//  static const int led_pin = 2;
+//  static const int led_pin2 = 0;
+//  static const int led_pin3 = 4;
   static int count = 0;
      while (1){      
+//      if(server_mode==2){
+//        WiFiClient client = server.available();
+//        if (client.connected()){
+//            client.print(String(wifistatus));client.print(";");
+//            Serial.println(client.remoteIP());
+//        }else{Serial.println("Noclient");}delay(1000);
+//      }
       if (multi==1){
            Serial.println(count);
            count++;
@@ -102,7 +114,7 @@ void setup() {
   Serial.printf("server Mac Address: %d\n",WiFi.macAddress());//Serial.println(WiFi.macAddress());
   Serial.printf("Subnet Mask: %d\n",WiFi.subnetMask());//Serial.println(WiFi.subnetMask());
   Serial.printf("Gateway IP: %d\n",WiFi.gatewayIP());//Serial.println(WiFi.gatewayIP());
-  xTaskCreatePinnedToCore(task0, "Task0", 4096, NULL, 1, NULL, 1);
+//  xTaskCreatePinnedToCore(task0, "Task0", 4096, NULL, 1, NULL, 0);
   delay(500);
 }
 
@@ -122,19 +134,24 @@ void loop() {
   multi=1;
   Serial.printf("aaa    %d\n",multi);
       
-       while(rcvCommand(target_ip,0)!=true);//hoge
+      while(rcvCommand(target_ip,number)!=true);//hoge
+      if(number==0){number=rstr.toInt();}
       while(rcv_index(target_ip,"/accdata1.csv")!=true);Serial.println("finish__A");
-      while(rcvCommand(target_ipB,0)!=true);
+      while(rcvCommand(target_ipB,number)!=true);
       while(rcv_index(target_ipB,"/accdata2.csv")!=true);Serial.println("finish__B");
-      while(rcvCommand(target_ipC,0)!=true);
+      while(rcvCommand(target_ipC,number)!=true);
       while(rcv_index(target_ipC,"/accdata3.csv")!=true);Serial.println("finish__C");
     server_mode=2;
-    
-  }else{//////////////////////////////////////////////////////////////////////////////
+    wifistatus=1;
+  }else if(server_mode==2){
     multi=0;
     Serial.println("please");
-    show();
-    server_mode=1;
+    if (show()==true){
+      number = rcvnumber();
+    }
+    server_mode=3;
+  }else{//////////////////////////////////////////////////////////////////////////////
+     server_mode=1;
   }
  }
 }
@@ -142,19 +159,17 @@ void loop() {
 bool rcvCommand(IPAddress target,int CMD){
   while(1){
     WiFiClient client = server.available();
-    String rstr;
+    
     String cmd;
-
+    
     if (client.connected()) {
       if(client.remoteIP()==target){
-        Serial.print("Connected to client\t");Serial.println(client.remoteIP());
+        Serial.print("\nConnected to client\t");Serial.println(client.remoteIP());
      
         //コマンド文字列受信（文字列が来なければタイムアウトする）
         rstr = client.readStringUntil('\r');
-        Serial.print("[");
         Serial.print(rstr);
-        Serial.println("]");
-
+        
         //応答送信
         cmd=String(CMD);
         client.print(cmd);client.print("\r");
@@ -162,18 +177,17 @@ bool rcvCommand(IPAddress target,int CMD){
         //接続をクローズ
         int i=0;
         while (client.available()==0){
-          client.print("0");client.print("\r");
-          Serial.println("0");
+          client.print(cmd);client.print("\r");
+          Serial.print(">");
           i++;delay(100);
-          if(i>30){return false;}}
+          if(i>10){return false;}}
         //送信確認
           client.stop();
           Serial.println("Closed");
           return true;
-//          return rstr;
 
       }else{
-        Serial.print("target not found");
+        Serial.print("x");
         client.stop();
       }
     }else{client.stop();}
@@ -182,27 +196,32 @@ bool rcvCommand(IPAddress target,int CMD){
 
 
 bool rcv_index(IPAddress target,char * path){
-  int i=0;SPIFFS.begin(); // ③SPIFFS開始
+  int i=0;
+  SPIFFS.begin(); // SPIFFS開始
     WiFiClient client = server.available();
       if(client.remoteIP()==target){
-        while(client.readStringUntil(';')!="GO");
+        while(client.readStringUntil(';')!="GO"){Serial.print("A");}
+        client.print("GO;");Serial.println("GO");
         delay(1);
+        Serial.println("\n reading"); 
         while (i<3000) {
            if (client.available()>0) { 
               String c = client.readStringUntil(';');
               databox[i]=c;
               i++;
+              if(i%1000==0){
+                Serial.print(client.remoteIP());  Serial.print("\t");    Serial.println(i);  
+              }
             }//delay(1);
-            Serial.print(client.remoteIP());  Serial.print("\t");    Serial.println(i);  
          }
-         
-          client.stop();
+          i=0;          
           Serial.println("Closed");
           writeFile(path);
+          client.stop();
          return true;
       }else{
         Serial.print("+");
-        delay(500);
+        delay(300);
         client.stop();
         return false;
       }
@@ -216,7 +235,7 @@ void writeFile(const char *path){
         Serial.println("Failed to open file for writing");
         return;
     }
-    for (int i=0;i<=3000;i++){
+    for (int i=0;i<3000;i++){
       file.println(databox[i]);
     }
     file.close();
@@ -238,7 +257,7 @@ void readcsv(const char *path){
   } 
 }
 
-void show(){
+bool show(){
       while(1){
        int inByte = Serial.read();
         switch (inByte) {
@@ -249,13 +268,29 @@ void show(){
             readcsv("/accdata2.csv");
             break;
           case 'c':
+            Serial.println("plese enter number");
+            Serial.printf("now open data%d.csv \n",number);
+            
+            return true;
+          case 'd':
             Serial.println("exit");
-//              WiFi.mode(WIFI_OFF);
-  //           readcsv("/accdata3.csv");
-              return;
-            break;
+            return false;
           default:
             digitalWrite(led_pin, HIGH);digitalWrite(led_pin2, HIGH);digitalWrite(led_pin3, HIGH);
             }
       }
+}
+
+int rcvnumber(){
+   String A ="";
+  while (1){
+    if(Serial.available()){
+    A = Serial.readStringUntil(';');
+      if (A.toInt()>0){
+        return A.toInt();
+      }else{
+        Serial.println("onemore");
+      }
+    }
+  }
 }

@@ -112,7 +112,7 @@ delay(1000);
 int B=0;
 int cut = 3000;
 void ReadAnalog() {//2msごとに起動される
-Serial.println(millis());
+Serial.print(millis());Serial.print("\tdata\t");Serial.println(datanumber);
 while(1){
   Z = analogRead(A0);
   t1 = millis();// - t0;
@@ -120,7 +120,7 @@ while(1){
   data [0] [blinkCount] = Z;
   data [1] [blinkCount] = t1;//システム稼働時間
   data [2] [blinkCount] = t1-time_now;//記録開始してからの時間
-  blinkCount++;
+  blinkCount++; 
   delay(1);
   if(mode!=2 || finished!=1){
       if (blinkCount % 500 == 0 ) {digitalWriteFast(9, HIGH); }
@@ -138,26 +138,24 @@ while(1){
         if(delaytime<0){delaytime=0;}
         delay(delaytime);
         Serial.println(millis()-A);
+        if(blinkCount == num){
+          datanumber++;
+          blinkCount=0;
+          finished=1;
+          return;
+        }
       }else{logstatus=false;}
       
-      if (blinkCount >= num) {
-        datanumber++;
-        blinkCount=0;
-        finished=1;
-        return;
-    //    finishtime=millis();    
-//        myTimer.end();
-//        Serial.println("Finished\t");
-      }  
+        
   }else{//mode:     no logging     スタンプ合わせ
-    if (blinkCount % 200 == 0 ) {digitalWriteFast(9, HIGH); }
-      else                        {digitalWriteFast(9, LOW) ; }
-    if (blinkCount >= num) {
-      datanumber++;
-      blinkCount=0;        
-    }    
+    datanumber++;//
+    blinkCount=0;  
+    digitalWriteFast(9, HIGH);
+    return;   
   }
-}}
+   
+}
+}
 
 void logging(int m,int datanumber) {
     String temp = "data";
@@ -182,8 +180,8 @@ void logging(int m,int datanumber) {
 }
 String SdFileRead(int number) {  //SDファイル読み込み
    String A="";String B="";String C="";String str;
-   String temp = "ddata";
-    temp.concat(number);
+   String temp = "data";
+    temp.concat(String(number));
     temp.concat(".csv");
     char filename[temp.length()+1];
     temp.toCharArray(filename, sizeof(filename));
@@ -210,12 +208,12 @@ void loop() {
       myTimer.begin(ReadAnalog, 4000000); //2000μs==0.002s==2ms//microsecounds // 500 Hz//whileに戻る
       mode=1;
   }else if (mode==1){//////////ESP待ち
-    while(digitalRead(sw2)==LOW){digitalWrite(9, LOW);}//HIGHになったら飛び出る//飛び出たときの時間 
+    while(digitalRead(sw2)==LOW);//HIGHになったら飛び出る//飛び出たときの時間 
       mode=2;
-      datanow=String(datanumber);    
+      datanow=String(datanumber-1);    
   }else if(mode==2 && finished==1){///////////////ESPmode
     while(digitalRead(sw2)==HIGH){//
-      Serial1.print(datanow);Serial1.print(";");
+      Serial1.print(datanow);Serial1.print(";");Serial.println("logging");
       delay(500);
     }Serial.println(datanow);
 //    while(digitalRead(10)==LOW){
