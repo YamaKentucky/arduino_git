@@ -13,7 +13,7 @@ void setup(void) {
 void readcsv(int max_data){
   String A;String B;
   SPIFFS.begin(true); // ③SPIFFS開始
-  File f = SPIFFS.open("/accdata.csv", "r");
+  File f = SPIFFS.open("/accdata2.csv", "r");
   int start=millis();
   if (!f) {
     Serial.println("file open failed");
@@ -23,6 +23,8 @@ void readcsv(int max_data){
     
     for (int i=0; i<=max_data; i++){
       String s=f.readStringUntil('\n');
+      Serial.print(i);
+      Serial.print("\t");
       Serial.println(s);
 //      if(i>3&&i<3000){
 //        A+=s;

@@ -3,17 +3,18 @@ void find_wifi(){
   while (WiFi.status() != WL_CONNECTED) {
     
     WiFi.mode(WIFI_OFF);Serial.println("kill wifi");
-    digitalWrite(5, LOW); delay(5000);
+    digitalWrite(led1, LOW); delay(5000);
     
     WiFi.begin(ssid, pass);Serial.println("begin wifi");
-    digitalWrite(5, HIGH); delay(5000);
+    digitalWrite(led1, HIGH); delay(5000);
     wificount++;
     if (wificount==6){
       multi=1;
       wificount=0;
     }
   }Serial.println("conect");
-  digitalWrite(5, HIGH); 
+  
+  digitalWrite(led1, HIGH); 
   return;
 }
 
@@ -44,23 +45,7 @@ String comunicate(){
 
 
 
-void sending_data(){
-    digitalWrite(4, HIGH);                                                  
-    delay(500);                                                             
-    if (flag==0){                                                           
-      String row="1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,,9,0,1,2,3,4,5,6,7,8,9,0";
-      client.print(row);client.print("\n");                                  
-      flag=1;     
-   }else{                                                                  
-      Serial.println("finish to comunicate");                               
-      client.print("10000");client.print("\n");                             
-      connection_mode=2;                                                    
-      flag=0; 
-   }                                                                       
-      digitalWrite(4, LOW);                                              
-      delay(10);   
-      return;
-}
+
 
 void sleep_wifi(int sleeptime){
   int i=0;
@@ -68,9 +53,9 @@ void sleep_wifi(int sleeptime){
   WiFi.mode(WIFI_OFF);
   while (i<sleeptime){
     if(i%2==0){
-      digitalWrite(5, LOW); 
+      digitalWrite(led1, LOW); 
     }else{
-      digitalWrite(5, HIGH); 
+      digitalWrite(led1, HIGH); 
     }
     i++;
     delay(1000);
@@ -87,7 +72,7 @@ void task0(void* arg){
            Serial.println("###########################################");
            Serial.println("\t\t\tForced reset\t\t\t");
            Serial.println("###########################################");
-           digitalWrite(23,HIGH);//teensy loggingmode
+           digitalWrite(logTeensy,HIGH);//teensy loggingmode
            delay(1000);
            ESP.restart();
           }
@@ -108,24 +93,7 @@ void task0(void* arg){
      }
  }
 
-void task1(void* arg){
-     while (1){
-      WiFiClient client;
-      if(client.connect(host, port)){
-      if (client.available() >= 0){
-        String A=client.readStringUntil(';');
-        Serial.print("A======");Serial.println(A);
-        if(A.toInt()==0){
-          while(1){
-            Serial.print("aaa=");Serial.println(A);
-            digitalWrite(4,HIGH);
-          }
-        }
-      }
- }Serial.println("NO");delay(1000);
- }
-}
- 
+
  
 bool sendSocket(String str){
   breakflag=0;
@@ -165,6 +133,7 @@ bool sendindex(){
     }
     client.print("GO;");Serial.println("GO;");
     delay(500);
+    client.print("GO;");Serial.println("GO;");
     Serial.print("\tsending\t");
     for (i=0;i<datasize;i++){
       client.print(box[i]);client.print(";");//Serial.println(box[i]);
@@ -184,7 +153,7 @@ bool rcv_data_from_teensy(int stepnumber){
    if (Serial2.available() > 0) { // 受信したデータが存在する
           String A = Serial2.readStringUntil('\n'); // 受信データを読み込む
           box[i]=A;
-          if(i%200==0){Serial.print("=");}
+          if(i%200==0){Serial.print(WiFi.status());}
           i++;          
     }  
   }//Serial.println(box[2999]);

@@ -2,28 +2,33 @@
 //HardwareSerial Serial2(2);
 #include <WiFi.h>
 
-
+uint32_t chipId = 0;
 const char *ssid = "yourAP";
 const char *pass = "yourPassword";
 
 // for fixed IP Address
-IPAddress ip(192, 168, 4, 2);const int starttime=500;         // IP A COM9
+//IPAddress ip(192, 168, 4, 2);const int starttime=500;         // IP A COM9
 //IPAddress ip(192, 168, 4, 3);const int starttime=1000;        // IP B COM15
 //IPAddress ip(192, 168, 4, 4);const int starttime=1500;        // IP C COM16
 
-
+IPAddress ip;
 IPAddress gateway(192,168, 4, 1);        //
 IPAddress subnet(255, 255, 255, 0);      //
 IPAddress DNS(192, 168, 4, 90);          //
-
 IPAddress host(192, 168, 4, 1);
+const int port = 80;
+
+
+const int sendTeensy=4;//22
+const int logTeensy=12;
+const int led1=32;
+const int led2=23;
+
 const int datasize=3000;//MAX3000
 String box[datasize+100];
-
+int starttime=0;
 int cnt=0; 
-const int sw_pin = 2;
-const int port = 80;
-const int sendTeensy=22;
+
 int flag=0;
 int connection_mode=0;
 int breakflag=0;
@@ -32,41 +37,44 @@ int wificount=0;
 String line = "";
 String lineline = "";
 
-//String row[3]={"hoge0","hoge1","hoge2"};
-
 String row="hoge";
-
-String data_lomg="1,2,3,4,5,6,7,8,9,0,1,2,3";
-String timestep="10000";
 
 int multi=0;
 WiFiClient client;
 
 
-void setup() {
-  
-  Serial2.begin(115200);
-  Serial.begin(115200);
-  
-  pinMode(sendTeensy, OUTPUT);
-  digitalWrite(sendTeensy,LOW);
-  pinMode(5, OUTPUT);    pinMode(4, OUTPUT);   // set the LED pin mode
-  pinMode(23, OUTPUT);
-  digitalWrite(23,LOW);
-//  for (int i=0;i<datasize;i++){
-//    box[i]="";
-//  }
-  // サーバーに接続する
-  WiFi.config(ip, gateway, subnet, DNS);   // Set fixed IP address
-  WiFi.mode(WIFI_STA);WiFi.begin(ssid, pass);
-  
-  find_wifi();
-  delay(starttime);
+void setup() { 
+  Serial2.begin(115200);Serial.begin(115200);
+   /* set the LED pin mode*/
+  pinMode(sendTeensy, OUTPUT);digitalWrite(sendTeensy,LOW);
+  pinMode(logTeensy, OUTPUT);digitalWrite(logTeensy,LOW);
+  pinMode(led1, OUTPUT);    digitalWrite(led1,HIGH);
+  pinMode(led2, OUTPUT); digitalWrite(led2,HIGH);
+  /*==set IP address==*/
+    for(int i=0; i<17; i=i+8) {
+      chipId |= ((ESP.getEfuseMac() >> (40 - i)) & 0xff) << i;
+    }  
+    if(chipId==14908468){// IP A COM9
+      ip=IPAddress(192, 168, 4, 2);const int starttime=500;    
+      Serial.println("set IP A");     
+    }else if(chipId==14026897){ // IP B COM15
+      ip=IPAddress(192, 168, 4, 3);const int starttime=1000;     
+      Serial.println("set IP B");   
+    }else if(chipId==14018061){ // IP C COM16
+      ip=IPAddress(192, 168, 4, 4);const int starttime=1500; 
+      Serial.println("set IP C");       
+    }
+    delay(starttime);
+  /*Set fixed IP address*/
+    WiFi.config(ip, gateway, subnet, DNS);   
+    WiFi.mode(WIFI_STA);WiFi.begin(ssid, pass);
+  /*==connecting server==*/
+    find_wifi();
   Serial.print("WiFi connected\nIP address: ");
   Serial.println(WiFi.localIP());
   xTaskCreatePinnedToCore(task0, "Task0", 4096, NULL, 1, NULL, 1);
   
-  
+  digitalWrite(led1,LOW);digitalWrite(led2,LOW);
 }
 String stamp="";
 void loop() {
@@ -90,7 +98,7 @@ void loop() {
           }delay(500);Serial.flush();
       }
         Serial.println(stamp);
-//        client.setTimeout(20000);
+//      client.setTimeout(20000);
       delay(1000);
       digitalWrite(sendTeensy,LOW);
     }else if(line=="-2"){
@@ -110,48 +118,25 @@ void loop() {
       Serial.println(lineline.toInt());
        rcv_data_from_teensy(lineline.toInt());cnt++;//
      }else if(cnt==2){
-       if(sendindex()==true){cnt++;}else{client.stop();delay(500);}  
+       if(sendindex()==true){cnt++;}else{client.stop();delay(1500);}  
      }else if(cnt>2){
         row="hoge";       
         lineline = "";
         connection_mode=2;
       }
-//      Serial.print("cnt\t");Serial.print(cnt);
-//      Serial.print("\t mode \t");Serial.println(connection_mode);
       delay(500);
-//      WiFiClient client;
- }else if(connection_mode==2){
+ }else if(connection_mode==2){//////////////////////////////////////////////////////
       Serial.println("waiting");
       delay(5000);
       connection_mode=3;
  }else{/////////////////////////////////////////////////////////////////////////////
-   
-   client.stop();
-   cnt=0;
-    Serial.println("finish");
-    multi=0;
-    sleep_wifi(20);
-    connection_mode=1;
-    
-    find_wifi();
+     Serial.println("finish");
+     client.stop();
+//     digitalWrite(logTeensy,HIGH);//teensy loggingmode
+     cnt=0;
+     multi=0;
+     sleep_wifi(20);
+     connection_mode=1;
+     find_wifi();
  }
 }
-
-
-//＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃
-//      if(sendSocket(row)==true){
-//        Serial.print("lineline");Serial.println(lineline);
-//        if (lineline.toInt()>0){
-//          Serial2.print("1;");//Serial2.print(";");
-//          Serial.print(lineline);Serial.print(";");
-//          while(1);
-////          row=box;
-//          row="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0";
-//        }else if (lineline=="0"){//"what number of datastep??"
-//          
-//          row="10000";
-//        }else{
-//          row=data_lomg;
-//        }
-//        cnt++;
-//      }

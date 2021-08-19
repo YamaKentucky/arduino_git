@@ -11,10 +11,10 @@ char syokisw = 0;
 volatile char inputchar = 0;
 unsigned long time_chat = 20;
 const int num = 3000;
-const int sw1=8;
-const int sw2=7;
-const int ledpin=3;
-
+const int sync=17;//同期
+const int sw2=7;//log再開
+const int ledsd=36;//36
+const int ledlog=37;//37
 
 float data [3] [num];
 volatile unsigned long blinkCount = 0; // use volatile for shared variables
@@ -29,23 +29,18 @@ int mode =0;
 int finished=0;
 
 void setup() {
-//  attachInterrupt(23, keisoku, RISING);
-//  attachInterrupt(2, EPM, RISING);
-//  attachInterrupt(0, syoki, RISING);
-
 
   analogReadResolution(16);//kaizoudo
 
-  pinMode(ledpin, OUTPUT);  //EPM
-  pinMode(4, INPUT);  //EPM
-  pinMode(9, OUTPUT);  //LED_log
+  pinMode(ledsd, OUTPUT);  //LED_SD
+  pinMode(ledlog, OUTPUT);  //LED_log
   pinMode(10, INPUT_PULLUP); //sw
 
-  pinMode(sw1, INPUT); //sw
+  pinMode(sync, INPUT); //sw
   pinMode(sw2, INPUT_PULLDOWN); //sw
 
   Serial.begin(9600);Serial1.begin(115200);
-   digitalWrite(9, LOW);
+   digitalWrite(ledlog, LOW);
 
 
   Serial.println(F("Initializing SD card..."));
@@ -57,28 +52,26 @@ void setup() {
       Serial.println(analogRead(A0));
       int i;
       i++;
-      if(i%2==0){digitalWrite(ledpin, HIGH);}
-            else{digitalWrite(ledpin, LOW);}delay(500);
+      if(i%2==0){digitalWrite(ledsd, HIGH);}
+            else{digitalWrite(ledsd, LOW);}delay(500);
     }
   }
 delay(1000);
   Serial.println(F("ok."));
   for (int i=0;i<1000;i++){
-    //a (1).csv
+    if (i%10==0){digitalWrite(ledlog, HIGH);}else{digitalWrite(ledlog, LOW);}
     String temp = "data";
     temp.concat(i);
     temp.concat(".csv");
     char filename[temp.length()+1];
     temp.toCharArray(filename, sizeof(filename));
-//    Serial.print(filename);
-  if(SD.exists(filename)){
-      SD.remove(filename);
-//      Serial.printf("find%s\n",filename);
-    }else{
-      Serial.printf("NOTFIND %d\n",i);
-    }
-  }
-  digitalWrite(9, HIGH);
+      if(SD.exists(filename)){
+          SD.remove(filename);
+      }else{
+          Serial.printf("NOTFIND %d\n",i);
+      } 
+  }//end for
+  digitalWrite(ledlog, HIGH);
 }
 
 
@@ -123,8 +116,9 @@ while(1){
   blinkCount++; 
   delay(1);
   if(mode!=2 || finished!=1){
-      if (blinkCount % 500 == 0 ) {digitalWriteFast(9, HIGH); }
-      else                        {digitalWriteFast(9, LOW) ; }
+    digitalWrite(ledsd, LOW);
+      if (blinkCount % 500 == 0 ) {digitalWriteFast(ledlog, HIGH); }
+      else                        {digitalWriteFast(ledlog, LOW) ; }
       
       if (blinkCount == 1) {
         starttime=millis();
@@ -150,7 +144,9 @@ while(1){
   }else{//mode:     no logging     スタンプ合わせ
     datanumber++;//
     blinkCount=0;  
-    digitalWriteFast(9, HIGH);
+    if(datanumber%2==0){digitalWrite(ledlog, HIGH);}
+    else{digitalWrite(ledlog, LOW);}
+    digitalWrite(ledsd, HIGH);
     return;   
   }
    
@@ -169,11 +165,11 @@ void logging(int m,int datanumber) {
 //      delay(1);
       dataFile.print(k + cut * m);
       dataFile.print(",");
-      dataFile.print(data [2][k + cut * m]);
+      dataFile.print(int(data [2][k + cut * m]));
       dataFile.print(",");
-      dataFile.print(data [1][k + cut * m]);
+      dataFile.print(int(data [1][k + cut * m]));
       dataFile.print(",");
-      dataFile.println(data[0][k + cut * m]);
+      dataFile.println(int(data[0][k + cut * m]));
     }
     dataFile.close();
 //  Serial.print("*");
@@ -203,10 +199,11 @@ String A="";
 String datanow="";
 void loop() {
   if (mode ==0){////////////信号待ち
-    while(digitalRead(sw1)==LOW);//HIGHになったら飛び出る//飛び出たときの時間//サーバーとの同期
+    while(digitalRead(sync)==LOW);//HIGHになったら飛び出る//飛び出たときの時間//サーバーとの同期
       time_now = millis(); 
       myTimer.begin(ReadAnalog, 4000000); //2000μs==0.002s==2ms//microsecounds // 500 Hz//whileに戻る
       mode=1;
+      digitalWriteFast(ledlog, LOW) ;
   }else if (mode==1){//////////ESP待ち
     while(digitalRead(sw2)==LOW);//HIGHになったら飛び出る//飛び出たときの時間 
       mode=2;
