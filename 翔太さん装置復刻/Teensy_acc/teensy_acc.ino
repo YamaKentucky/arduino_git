@@ -1,4 +1,7 @@
 #include<SD.h>
+#include "M41T62.h"
+RTC_Millis rtc;
+
 const int chipSelect = BUILTIN_SDCARD;
 File dataFile;
 
@@ -16,6 +19,8 @@ const int sw2=7;//log再開
 const int ledsd=36;//36
 const int ledlog=37;//37
 
+int availabledata[12];//=(0,0,0,0,0,0,0,0,0,0,0);
+int x=0;
 float data [3] [num];
 volatile unsigned long blinkCount = 0; // use volatile for shared variables
 bool logstatus=false;
@@ -28,130 +33,108 @@ int finishtime;
 int mode =0;
 int finished=0;
 
-void setup() {
 
+
+void setup() {  
+  Serial.begin(9600);Serial1.begin(115200);
   analogReadResolution(16);//kaizoudo
-
+ 
   pinMode(ledsd, OUTPUT);  //LED_SD
   pinMode(ledlog, OUTPUT);  //LED_log
   pinMode(10, INPUT_PULLUP); //sw
-
-  pinMode(sync, INPUT); //sw
+  pinMode(sync, INPUT_PULLDOWN); //sw
   pinMode(sw2, INPUT_PULLDOWN); //sw
-
-  Serial.begin(9600);Serial1.begin(115200);
-   digitalWrite(ledlog, LOW);
-
+  digitalWrite(ledlog, LOW);
 
   Serial.println(F("Initializing SD card..."));
   pinMode(SS, OUTPUT);
   if (!SD.begin(chipSelect)) {
     Serial.println(F("Card failed, or not present"));
-    // 失敗、何もしない
-    while (1){
-      Serial.println(analogRead(A0));
+    while (1){ // 失敗、何もしない
       int i;
       i++;
       if(i%2==0){digitalWrite(ledsd, HIGH);}
             else{digitalWrite(ledsd, LOW);}delay(500);
     }
-  }
-delay(1000);
+  }delay(1);
   Serial.println(F("ok."));
   for (int i=0;i<1000;i++){
     if (i%10==0){digitalWrite(ledlog, HIGH);}else{digitalWrite(ledlog, LOW);}
+    if (i%200==0){Serial.print(F("*"));}                 
     String temp = "data";
     temp.concat(i);
     temp.concat(".csv");
     char filename[temp.length()+1];
     temp.toCharArray(filename, sizeof(filename));
-      if(SD.exists(filename)){
-          SD.remove(filename);
-      }else{
-          Serial.printf("NOTFIND %d\n",i);
-      } 
-  }//end for
+    if(SD.exists(filename)){SD.remove(filename);}
+  }
+  Serial.println(F("\n sd reset"));
   digitalWrite(ledlog, HIGH);
+  if(analogRead(A9)>1000){
+    timeset();
+  }else{
+    rtc.adjust(DateTime(2021, 8,20, 14, 0, 0));/*time*/
+  }
+  
+  Serial.print("finish");   
+  SdFile::dateTimeCallback( &dateTime );
 }
-
-
-//void syoki() {/*#################################################################################*/
-//  time_now_S = millis(); //現在の割り込み時刻を取得
-//  if ( time_now_S - time_prev_S > time_chat) {
-//    if ( sw_S == 0 ) {
-//      if (syokisw == 0) {
-//        t0 = millis();
-//        Serial.print("syokiawase");
-//        digitalWrite(10, HIGH); //LED表示
-//        delay(1000);
-//        digitalWrite(10, LOW);
-//        syokisw = 1;
-//      }
-//    }
-//    sw_S = !sw_S; //前回の割り込みから20[ms]以上経過ならば、スイッチの状態を切り替え
-//  }
-//  time_prev_S = time_now_S; //現在の割り込み時刻を前回の割り込み時刻へコピー
-//}
-
-
-
-//void keisoku() {
-//  time_now = millis(); //現在の割り込み時刻を取得
-//  myTimer.begin(ReadAnalog, 2000);  // 500 Hz
-//}
-
 
 
 int B=0;
 int cut = 3000;
-void ReadAnalog() {//2msごとに起動される
-Serial.print(millis());Serial.print("\tdata\t");Serial.println(datanumber);
-while(1){
-  Z = analogRead(A0);
-  t1 = millis();// - t0;
-  
-  data [0] [blinkCount] = Z;
-  data [1] [blinkCount] = t1;//システム稼働時間
-  data [2] [blinkCount] = t1-time_now;//記録開始してからの時間
-  blinkCount++; 
-  delay(1);
-  if(mode!=2 || finished!=1){
-    digitalWrite(ledsd, LOW);
-      if (blinkCount % 500 == 0 ) {digitalWriteFast(ledlog, HIGH); }
-      else                        {digitalWriteFast(ledlog, LOW) ; }
-      
-      if (blinkCount == 1) {
-        starttime=millis();
-        finished=0;
-      }
-      if (blinkCount %cut == 0) {
-        logstatus=true;
-        int A=millis();
-        logging((blinkCount / cut)-1,datanumber);    
-        int delaytime=250-(millis()-A);
-        if(delaytime<0){delaytime=0;}
-        delay(delaytime);
-        Serial.println(millis()-A);
-        if(blinkCount == num){
-          datanumber++;
-          blinkCount=0;
-          finished=1;
-          return;
-        }
-      }else{logstatus=false;}
-      
+void ReadAnalog() {//4sごとに起動される
+  Serial.print(millis());Serial.print("\tdata\t");Serial.println(datanumber);
+  while(1){
+    Z = analogRead(A0);
+    t1 = millis();// - t0;
+    
+    data [0] [blinkCount] = Z;
+    data [1] [blinkCount] = t1;//システム稼働時間
+    data [2] [blinkCount] = t1-time_now;//記録開始してからの時間
+    blinkCount++; 
+    delay(1);
+    if(mode!=2 || finished!=1){
+      digitalWrite(ledsd, LOW);
+        if (blinkCount % 500 == 0 ) {digitalWriteFast(ledlog, HIGH); }
+        else                        {digitalWriteFast(ledlog, LOW) ; }
         
-  }else{//mode:     no logging     スタンプ合わせ
-    datanumber++;//
-    blinkCount=0;  
-    if(datanumber%2==0){digitalWrite(ledlog, HIGH);}
-    else{digitalWrite(ledlog, LOW);}
-    digitalWrite(ledsd, HIGH);
-    return;   
+        if (blinkCount == 1) {
+          starttime=millis();
+          finished=0;
+//          if(x>9){x=0;}
+          for (int i=0;i<9;i++){
+            availabledata[i]=availabledata[i+1];
+          }
+            availabledata[9]=datanumber;
+//            x++;
+            for (int i=0;i<10;i++){Serial.print(availabledata[i]);Serial.print(',');}
+          }
+        if (blinkCount %cut == 0) {
+          logstatus=true;
+          int A=millis();
+          logging((blinkCount / cut)-1,datanumber);    
+          Serial.println(millis()-A);
+          if(blinkCount == num){
+            datanumber++;
+            blinkCount=0;
+            finished=1;
+            return;
+          }
+        }else{
+          logstatus=false;
+        }  
+    }else{//mode:     no logging     スタンプ合わせ
+      datanumber++;//
+      blinkCount=0;  
+      if(datanumber%2==0){digitalWrite(ledlog, HIGH);}
+      else{digitalWrite(ledlog, LOW);}
+      digitalWrite(ledsd, HIGH);
+      return;   
+    }
+     
   }
-   
-}
-}
+  }
 
 void logging(int m,int datanumber) {
     String temp = "data";
@@ -172,8 +155,8 @@ void logging(int m,int datanumber) {
       dataFile.println(int(data[0][k + cut * m]));
     }
     dataFile.close();
-//  Serial.print("*");
 }
+
 String SdFileRead(int number) {  //SDファイル読み込み
    String A="";String B="";String C="";String str;
    String temp = "data";
@@ -185,61 +168,87 @@ String SdFileRead(int number) {  //SDファイル読み込み
    Serial.print(F("SD FileRead: ")); Serial.println(filename);
    if(file){
     for (int i=0; i<num; i++){
-      String s=file.readStringUntil('\n');
-      
+      String s=file.readStringUntil('\n');     
       Serial1.println(s);Serial.println(s);
     } // end for
-   } else{Serial.println(F(" error..."));}
+   } else{
+    Serial.println(F(" error..."));
+    for (int i=0; i<num; i++){   
+      Serial1.print(i);Serial1.println("::error");
+      Serial.println(i);Serial.println(F("::error"));
+    } // end for    
+   }
    file.close();
    return str;
 }
+
 
 
 String A="";
 String datanow="";
 void loop() {
   if (mode ==0){////////////信号待ち
-    while(digitalRead(sync)==LOW);//HIGHになったら飛び出る//飛び出たときの時間//サーバーとの同期
-      time_now = millis(); 
-      myTimer.begin(ReadAnalog, 4000000); //2000μs==0.002s==2ms//microsecounds // 500 Hz//whileに戻る
+    while(digitalRead(sync)==LOW);//HIGHになったら飛び出る
+      time_now = millis(); //飛び出たときの時間//サーバーとの同期
+      myTimer.begin(ReadAnalog, 4000000);//microsecounds //4000000μs==4s==4000ms 
       mode=1;
       digitalWriteFast(ledlog, LOW) ;
   }else if (mode==1){//////////ESP待ち
-    while(digitalRead(sw2)==LOW);//HIGHになったら飛び出る//飛び出たときの時間 
+    while(digitalRead(sw2)==LOW);//HIGHになったら飛び出る
       mode=2;
       datanow=String(datanumber-1);    
   }else if(mode==2 && finished==1){///////////////ESPmode
     while(digitalRead(sw2)==HIGH){//
-      Serial1.print(datanow);Serial1.print(";");Serial.println("logging");
+      for (int i=0;i<10;i++){Serial1.print(availabledata[i]);Serial1.print(',');}
+//      Serial1.print(datanow);
+      Serial1.print(";");Serial.println(F("logging"));
       delay(500);
     }Serial.println(datanow);
 //    while(digitalRead(10)==LOW){
-      while(analogRead(A9)<1000){
+    while(analogRead(A9)<1000){
       if (Serial1.available() > 0) { // 受信したデータが存在する
         A = Serial1.readStringUntil(';'); // 受信データを読み込む
         if(A.toInt()>0){
           Serial1.print("OK;");
-          Serial.print("sending");
+          Serial.print(F("sending"));
           SdFileRead(A.toInt());
-          Serial.print("finish");
-//          delay(1000);
+          Serial.print(F("finish"));
         }else if(A.toInt()==0){
-          Serial.println("stamp");
+          Serial.println(F("stamp"));
         }else{
-          Serial.print("?wakaran?");
+          Serial.print(F("?wakaran?"));
         }
-//
-//        Serial.print("I received: "); // 受信データを送りかえす
-//        Serial.println(A);
-      }
-        
-
-
-      
+      }  
   }
   mode=1;finished=0;
-//  Serial.println(".");
-//  delay(100);
   }
-//  delay(1000000);
+}
+
+void dateTime(uint16_t* date, uint16_t* time)
+{
+    DateTime now = rtc.now();
+  uint16_t year = now.year();
+  uint8_t month = now.month(), day = now.day(), hour = now.hour(), minute = now.minute(), second = now.second();
+  *date = FAT_DATE(year, month, day);// FAT_DATEマクロでフィールドを埋めて日付を返す
+  *time = FAT_TIME(hour, minute, second);// FAT_TIMEマクロでフィールドを埋めて時間を返す
+}
+
+void timeset(){
+  Serial.print("timeset");
+  
+  while(1){
+    Serial1.print("A;");
+    if (Serial1.available() > 0) {
+       String y= Serial1.readStringUntil(','); 
+       String M=Serial1.readStringUntil(','); 
+       String D=Serial1.readStringUntil(','); 
+       String H=Serial1.readStringUntil(','); 
+       String m=Serial1.readStringUntil(',');
+       
+       rtc.adjust(DateTime(y.toInt(), M.toInt(), D.toInt(), H.toInt(), m.toInt(), 0));/*time*/
+       return;
+    }
+     
+     
+  }
 }

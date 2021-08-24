@@ -1,7 +1,7 @@
 void sync() {
   WiFi.mode(WIFI_OFF);Serial.println("kill wifi");
   int i=0;
-  while(digitalRead(19)!=HIGH){
+  while(digitalRead(sw_sync)!=HIGH){
     if(i==0){
       digitalWrite(led_pin, LOW);digitalWrite(led_pin2, LOW);digitalWrite(led_pin3, LOW);
     }else if(i==1){
@@ -15,15 +15,35 @@ void sync() {
     i++;
     delay(100);
   }
-  Wire.requestFrom(0x68, 12);    // request 6 bytes from slave device #2//0x68
-    
-    while(Wire.available())    // slave may send less than requested
-    { 
-    char c = Wire.read();    // receive a byte as character
-    Serial.print(c);         // print the character
-    }
+  writeTime(SPIFFS);
   Serial.print("finish");
   digitalWrite(led_pin, LOW);digitalWrite(led_pin2, LOW);digitalWrite(led_pin3, LOW);
    delay(5000);
+  readtime(SPIFFS);
+  while(1);
   
+}
+
+void writeTime(fs::FS &fs){
+    DateTime now = rtc.now();
+    File file = fs.open("/time.csv", "w");
+    if(!file){
+        Serial.println("Failed to open file for writing");
+        return;
+    }
+    String row=String(now.year())+','+String(now.month())+','+String(now.day())+','+String(now.hour())+','+String(now.minute())+';';
+    file.println(row);
+      
+    file.close();
+}
+void readtime(fs::FS &fs){
+  File f = fs.open("/time.csv","r");
+  if (!f) {
+    Serial.println("file open failed");
+  } else {
+    Serial.println("set up time==>");   
+      String s=f.readStringUntil('\n');
+      Serial.print(s);Serial.println(';');
+    f.close();
+  }
 }

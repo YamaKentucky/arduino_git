@@ -43,7 +43,30 @@ String comunicate(){
     return line;
 }
 
-
+String comtime(){
+  String line="";
+  int breakflag=0;
+    while (!client.connect(host, port)) {
+      breakflag+=1;
+      Serial.println("connection failed");
+      delay(1000);
+      return "0";
+    }
+    while (client.available() == 0) {
+      breakflag+=1;
+      if(breakflag%50==0){Serial.print(",");}
+      if (breakflag>=500){
+        Serial.println("");
+//        connection_mode=0;
+        return "0";
+      }
+      delay(10);
+  }
+    while(client.available()) {
+      line = client.readStringUntil(';');
+    }
+    return line;
+}
 
 
 
@@ -95,10 +118,10 @@ void task0(void* arg){
 
 
  
-bool sendSocket(String str){
+bool sendSocket(String str,String stamp){
   breakflag=0;
   if (client.connect(host, port)){ 
-    Serial.println("Posting: " + str);
+    Serial.println("Posting: " + stamp);
  
     //送信
     client.print(str);
@@ -117,7 +140,7 @@ bool sendSocket(String str){
     do{
       lineline = client.readStringUntil('\r');
     } while (client.available() != 0);  //残りがあるときはさらに受信のためループ
-    if(lineline.toInt()==0){lineline=str;}
+    if(lineline.toInt()==0){lineline=stamp;}
     return true;
    } else{
      Serial.println("Connection failed.");
@@ -133,7 +156,7 @@ bool sendindex(){
     }
     client.print("GO;");Serial.println("GO;");
     delay(500);
-    client.print("GO;");Serial.println("GO;");
+//    client.print("GO;");Serial.println("GO;");
     Serial.print("\tsending\t");
     for (i=0;i<datasize;i++){
       client.print(box[i]);client.print(";");//Serial.println(box[i]);
@@ -153,7 +176,7 @@ bool rcv_data_from_teensy(int stepnumber){
    if (Serial2.available() > 0) { // 受信したデータが存在する
           String A = Serial2.readStringUntil('\n'); // 受信データを読み込む
           box[i]=A;
-          if(i%200==0){Serial.print(WiFi.status());}
+          if(i%200==0){Serial.println(box[i]);}
           i++;          
     }  
   }//Serial.println(box[2999]);

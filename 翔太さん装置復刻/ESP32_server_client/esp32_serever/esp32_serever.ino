@@ -13,6 +13,11 @@ const char *pass = "yourPassword";
 static const int led_pin = 2;
 static const int led_pin2 = 0;
 static const int led_pin3 = 4;
+const int sw1=16;
+const int sw2=17;
+const int sw_sync=15;
+
+
 int wifistatus=0;
 int target=0;
 int server_mode=0;
@@ -27,6 +32,8 @@ int number=0;
 int action=-1;
 String rstr;
 String databox[3100];//String databoxB[3100];String databoxC[3100];
+String stampbox="";
+String ref_stamp="";
 
 IPAddress ip(192, 168, 4, 1);
 IPAddress target_ip(192, 168, 4, 2);
@@ -101,7 +108,7 @@ void task0(void* arg)
  }
 
 void setup() {
-  Serial.begin(115200);SPIFFS.begin();
+  Serial.begin(115200);
   Wire.begin();
 //  rtc.begin(DateTime(F(__DATE__), F(__TIME__)));
   
@@ -110,16 +117,21 @@ void setup() {
   server.begin();
   Serial.println("Server started");
   // LEDの初期化
-  pinMode(led_pin, OUTPUT);digitalWrite(led_pin, LOW);
-  pinMode(led_pin2, OUTPUT);digitalWrite(led_pin2, LOW);
-  pinMode(led_pin3, OUTPUT);digitalWrite(led_pin3, LOW);
-  pinMode(19, INPUT_PULLDOWN);
-  pinMode(23, INPUT_PULLUP);
-//  pinMode(led_pin3, OUTPUT);digitalWrite(led_pin3, LOW);
- if(digitalRead(23)==HIGH){
-  action=1;//syncモード
- }else{
+  pinMode(led_pin, OUTPUT);digitalWrite(led_pin, HIGH);
+  pinMode(led_pin2, OUTPUT);digitalWrite(led_pin2, HIGH);
+  pinMode(led_pin3, OUTPUT);digitalWrite(led_pin3, HIGH);
+  pinMode(sw_sync, INPUT_PULLDOWN);
+  pinMode(sw1, INPUT_PULLDOWN);pinMode(sw2, INPUT_PULLDOWN);
+    SPIFFS.begin();
+  digitalWrite(led_pin, LOW);digitalWrite(led_pin2, LOW);digitalWrite(led_pin3, LOW);
+ if(digitalRead(sw1)==HIGH && digitalRead(sw2)==HIGH){
   action=2;//log取得モード
+ }else if(digitalRead(sw1)==HIGH && digitalRead(sw2)==LOW){
+  action=4;
+ }else if(digitalRead(sw1)==LOW && digitalRead(sw2)==HIGH ){
+  action=3;//timeset
+ }else if(digitalRead(sw1)==LOW && digitalRead(sw2)==LOW ){
+  action=1;//syncモード
  }
   IPAddress myIP = WiFi.softAPIP();
   Serial.print("APStarted. myIP Address: ");Serial.println(myIP);
@@ -134,8 +146,15 @@ void setup() {
 void loop(){
   Serial.println(action);
   if(action==1){
+    Serial.println("sync mode");
+//    timeset();
     sync();
-  }else{
+  }else if(action==2){
+    Serial.println("logging mode");
     logging();
+  }else if(action==3){
+    timeset();
+  }else{
+    Serial.println("error");
   }
 }

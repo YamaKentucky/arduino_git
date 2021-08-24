@@ -70,13 +70,15 @@ void setup() {
     WiFi.mode(WIFI_STA);WiFi.begin(ssid, pass);
   /*==connecting server==*/
     find_wifi();
-  Serial.print("WiFi connected\nIP address: ");
-  Serial.println(WiFi.localIP());
+    Serial.print("WiFi connected\nIP address: ");
+    Serial.println(WiFi.localIP());
   xTaskCreatePinnedToCore(task0, "Task0", 4096, NULL, 1, NULL, 1);
   
   digitalWrite(led1,LOW);digitalWrite(led2,LOW);
 }
+
 String stamp="";
+String stampbox="";
 void loop() {
   Serial.printf("mode:%d\t cnt:%d\n",connection_mode,cnt);
   
@@ -91,40 +93,47 @@ void loop() {
       connection_mode=1;
       while(1){//teensyの確認
         if (Serial2.available() > 0) {
-           stamp = Serial2.readStringUntil(';');
+          for (int i=0;i<10;i++){
+            stamp = Serial2.readStringUntil(',');
+            stampbox+=stamp+',';
+          }
            if (stamp.toInt()>0){
              break;
            }
-          }delay(500);Serial.flush();
+          }delay(500);Serial2.flush();
       }
-        Serial.println(stamp);
-//      client.setTimeout(20000);
-      delay(1000);
+        Serial.println(stampbox);
       digitalWrite(sendTeensy,LOW);
+      client.setTimeout(30000);
+      delay(1000);
+     Serial.flush();
+    }else if(line=="time"){
+      settime();
     }else if(line=="-2"){
       connection_mode=0;
       sleep_wifi(1);
     }else{
       connection_mode=0;
     }
+//    row=stampbox;
     row=stamp;
  }else if (connection_mode==1){//////////////////////////////////////////////////////
       multi=1;
-      
-
      if(cnt==0){
-        if (sendSocket(row)==true){cnt++;}else{client.stop();delay(5000);}  //5000
+        if (sendSocket(stampbox,row)==true){cnt++;}else{client.stop();delay(5000);}  //5000
      }else if(cnt==1){
-      Serial.println(lineline.toInt());
+       Serial.println(lineline.toInt());
+      Serial2.flush();
        rcv_data_from_teensy(lineline.toInt());cnt++;//
+//       rcv_data_from_teensy(163);cnt++;//
      }else if(cnt==2){
-       if(sendindex()==true){cnt++;}else{client.stop();delay(1500);}  
+       if(sendindex()==true){cnt++;}else{client.stop();delay(500);}  
      }else if(cnt>2){
-        row="hoge";       
-        lineline = "";
-        connection_mode=2;
-      }
-      delay(500);
+       row="hoge";       
+       lineline = "";
+       connection_mode=2;
+     }
+       delay(500);
  }else if(connection_mode==2){//////////////////////////////////////////////////////
       Serial.println("waiting");
       delay(5000);
