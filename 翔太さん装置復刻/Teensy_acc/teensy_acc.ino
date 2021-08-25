@@ -6,7 +6,9 @@ const int chipSelect = BUILTIN_SDCARD;
 File dataFile;
 
 IntervalTimer myTimer;
-int Z;//accel
+int x=0;//accel
+int y=0;//accel
+int z=0;//accel
 volatile int sw = LOW, sw_E = LOW, sw_S = LOW;
 volatile unsigned long time_prev = 0, time_prev_E = 0, time_prev_S = 0, time_now, time_now_E, time_now_S;
 
@@ -20,8 +22,8 @@ const int ledsd=36;//36
 const int ledlog=37;//37
 
 int availabledata[12];//=(0,0,0,0,0,0,0,0,0,0,0);
-int x=0;
-float data [3] [num];
+float data [4] [num];
+int fasttime=0;
 volatile unsigned long blinkCount = 0; // use volatile for shared variables
 bool logstatus=false;
 int datanumber=1;
@@ -83,15 +85,20 @@ void setup() {
 
 int B=0;
 int cut = 3000;
+
 void ReadAnalog() {//4sごとに起動される
   Serial.print(millis());Serial.print("\tdata\t");Serial.println(datanumber);
+  fasttime=millis()-time_now;
   while(1){
-    Z = analogRead(A0);
+    x=analogRead(A2);
+    y=analogRead(A1);
+    z = analogRead(A0);
     t1 = millis();// - t0;
-    
-    data [0] [blinkCount] = Z;
-    data [1] [blinkCount] = t1;//システム稼働時間
-    data [2] [blinkCount] = t1-time_now;//記録開始してからの時間
+    data [0] [blinkCount] =t1-time_now-fasttime;
+//    data [0] [blinkCount] = t1-time_now;//記録開始してからの時間
+    data [1] [blinkCount] = x;
+    data [2] [blinkCount] = y;
+    data [3] [blinkCount] = z;
     blinkCount++; 
     delay(1);
     if(mode!=2 || finished!=1){
@@ -102,18 +109,17 @@ void ReadAnalog() {//4sごとに起動される
         if (blinkCount == 1) {
           starttime=millis();
           finished=0;
-//          if(x>9){x=0;}
           for (int i=0;i<9;i++){
             availabledata[i]=availabledata[i+1];
           }
             availabledata[9]=datanumber;
-//            x++;
             for (int i=0;i<10;i++){Serial.print(availabledata[i]);Serial.print(',');}
           }
         if (blinkCount %cut == 0) {
           logstatus=true;
           int A=millis();
-          logging((blinkCount / cut)-1,datanumber);    
+          logging(datanumber);    
+
           Serial.println(millis()-A);
           if(blinkCount == num){
             datanumber++;
@@ -136,23 +142,23 @@ void ReadAnalog() {//4sごとに起動される
   }
   }
 
-void logging(int m,int datanumber) {
+void logging(int datanumber) {
     String temp = "data";
     temp.concat(datanumber);
     temp.concat(".csv");
     char filename[temp.length()+1];
     temp.toCharArray(filename, sizeof(filename));
     dataFile = SD.open(filename, FILE_WRITE);
-
+    String row="time "+String(fasttime)+"[ms],x_low,y_low,z_low";
+    dataFile.println(row);
     for (int k = 0; k < cut; k++) {
 //      delay(1);
-      dataFile.print(k + cut * m);
-      dataFile.print(",");
-      dataFile.print(int(data [2][k + cut * m]));
-      dataFile.print(",");
-      dataFile.print(int(data [1][k + cut * m]));
-      dataFile.print(",");
-      dataFile.println(int(data[0][k + cut * m]));
+    String getdata=String(int(data [0][k]))+',';
+    getdata+=String(int(data [1][k]))+',';
+    getdata+=String(int(data [2][k]))+',';
+    getdata+=String(int(data [3][k]))+'\n';
+
+      dataFile.print(getdata);
     }
     dataFile.close();
 }
