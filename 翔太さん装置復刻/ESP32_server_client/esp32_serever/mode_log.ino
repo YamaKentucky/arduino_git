@@ -72,7 +72,7 @@ bool rcvCommand(IPAddress target,int CMD){
           rstr = client.readStringUntil('\r');
         }
         Serial.println(rstr);
-        
+        client.readStringUntil(';');//flush
         //応答送信
         cmd=String(CMD);
         client.print(cmd);client.print("\r");
@@ -161,8 +161,8 @@ void readcsv(fs::FS &fs){
       String s=f.readStringUntil('\n');
       String sB=fB.readStringUntil('\n');
       String sC=fC.readStringUntil('\n');
-
-      Serial.print(s+';'+sB+';'+sC+';'+'\n');
+      Serial.print(i);Serial.print(';');
+      Serial.print(s+','+sB+','+sC+';'+'\n');
       
 //      Serial.print(s);Serial.print(';');
 //      Serial.print(sB);Serial.print(';');
