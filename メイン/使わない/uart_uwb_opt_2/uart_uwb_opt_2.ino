@@ -6,8 +6,6 @@ uart_uwb_optより改変
 UWBの接続が途絶えると更新が停止する問題を解決し，接続が途絶えると前の値をプロットし続ける．
 */
 
-
-
 //#define HWSERIAL Serial1
 String recv_data = String(0); // 受信データ
 
